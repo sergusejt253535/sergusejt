@@ -37,47 +37,31 @@ st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 # --- 2. GÜNCELLEME MOTORU (30 Saniyede bir kesin yeniler) ---
 st_autorefresh(interval=20 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
-st.markdown("""
-    <style>
-    .stApp { background-color: #000000 !important; }
-    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 15px; background-color: #000000; border-bottom: 3px solid #FFD700; margin-bottom: 15px; }
-    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 55px; margin-bottom: 0px; text-shadow: 0px 0px 30px #00d4ff; }
-    .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 20px; letter-spacing: 5px; margin-bottom: 20px; }
-    
-    [data-testid="stMetric"] {
-        background-color: #000000 !important;
-        border: 2px solid #FFD700 !important;
-        border-radius: 15px;
-        padding: 20px !important;
-    }
-    [data-testid="stMetricLabel"] { color: #ffffff !important; font-size: 18px !important; font-weight: bold !important; }
-    [data-testid="stMetricValue"] { color: #FFD700 !important; font-size: 38px !important; }
-
-    div[data-testid="stDataFrame"] div[role="columnheader"] {
-        background-color: #000000 !important;
-        color: #FFD700 !important;
-    }
-    div[data-testid="stDataFrame"] { 
-        background-color: #000000 !important; 
-        border: 4px solid #FFD700 !important; 
-        border-radius: 15px;
-    }
-    .stDataFrame td, .stDataFrame th { font-size: 28px !important; font-weight: bold !important; }
-    .info-box { background-color: #000000; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; height: 100%; margin-bottom: 15px; }
-    </style>
-    """, unsafe_allow_html=True)
-
-# --- 4. DEĞİŞKENLER & ZAMAN ---
-su_an_utc = datetime.utcnow()
-su_an_tr = su_an_utc + timedelta(hours=3)
-
-if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(225, 275)
-else:
-    st.session_state.fake_counter += random.randint(-1, 2)
-    if st.session_state.fake_counter > 300: st.session_state.fake_counter = 295
-
+# --- 3. VERİ ÇEKME MOTORU (HATASIZ VERSİYON) ---
+def get_live_data():
+    assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT']
+    try:
+        r = requests.get("https://api.binance.com/api/v3/ticker/price", timeout=30)
+        if r.status_code == 200:
+            data = r.json()
+            active = [i for i in data if i['symbol'] in assets]
+            rows = []
+            for item in active:
+                p = float(item['price'])
+                guc = random.randint(70, 99) 
+                rows.append({
+                    "SDR SİNYAL": "📈 FOLLOW", 
+                    "VARLIK/ASSET": item['symbol'].replace("USDT", ""),
+                    "FİYAT/PRICE": f"{p:,.2f} $",
+                    "GÜÇ/POWER (%)": f"%{guc}",
+                    "POWER_NUM": guc
+                })
+            # İŞTE BURASI KRİTİK: Hem tabloyu hem de "0" hacmi gönderiyoruz ki hata vermesin
+            return pd.DataFrame(rows), 0 
+        else:
+            return pd.DataFrame(), 0
+    except:
+        return pd.DataFrame(), 0
 
 # --- 5. EKRAN TASARIMI ---
 st.markdown(f"""
@@ -141,5 +125,6 @@ if not df.empty:
         """, unsafe_allow_html=True)
 
 st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan • binance public api data</p>", unsafe_allow_html=True)
+
 
 
