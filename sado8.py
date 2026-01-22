@@ -6,13 +6,13 @@ import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR (İLK SIRADA OLMAK ZORUNDA) ---
+# --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU ---
-st_autorefresh(interval=30 * 1000, key="datarefresh")
+# --- 2. GÜNCELLEME MOTORU (15 Saniyeye çekildi) ---
+st_autorefresh(interval=15 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
+# --- 3. CSS TASARIM (Senin tasarımın, korundu) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
@@ -43,20 +43,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER ---
+# --- 4. DEĞİŞKENLER VE ZİYARETÇİ BOTU (100-200 AYARI) ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
 if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(225, 275)
+    st.session_state.fake_counter = random.randint(100, 150) # 100-200 bandı için başlangıç
 else:
-    st.session_state.fake_counter += random.randint(-1, 2)
-    if st.session_state.fake_counter > 300: st.session_state.fake_counter = 295
+    # Her 15 saniyede bir abartmadan 1 kişi eklenebilir veya sabit kalır
+    st.session_state.fake_counter += random.randint(0, 1)
+    if st.session_state.fake_counter > 200: st.session_state.fake_counter = 198
 
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     try:
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
+        # Timeout eklendi, bağlantı daha sağlam
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=15)
         data = r.json()
         active = [i for i in data if i['symbol'] in assets]
         rows = []
@@ -87,7 +89,7 @@ def get_live_data():
 # --- 5. EKRAN TASARIMI ---
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 30S</div>
+        <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 15S</div>
         <div style='text-align:center;'>
             <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
             &nbsp;&nbsp;&nbsp;&nbsp;
@@ -141,5 +143,7 @@ if not df.empty:
             <p style='color:#00d4ff;'>⚡ 50% cash protection is advised. / %50 nakit koruması tavsiye edilir.</p>
         </div>
         """, unsafe_allow_html=True)
+else:
+    st.warning("⚠️ BINANCE API BAĞLANTISI KURULUYOR... / CONNECTING TO BINANCE API...")
 
 st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan • binance public api data</p>", unsafe_allow_html=True)
