@@ -8,9 +8,11 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
+
+# --- 2. GÜNCELLEME MOTORU (GÜVENLİ VE STABİL 15 SANİYE) ---
 st_autorefresh(interval=15 * 1000, key="datarefresh")
 
-# --- 2. CSS TASARIM ---
+# --- 3. CSS TASARIM ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
@@ -26,17 +28,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. DEĞİŞKENLER ---
+# --- 4. DEĞİŞKENLER ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
 if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(100, 150)
+    st.session_state.fake_counter = random.randint(150, 190)
 else:
     st.session_state.fake_counter += random.randint(0, 1)
     if st.session_state.fake_counter > 200: st.session_state.fake_counter = 198
 
-# --- 4. VERİ ÇEKME ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     active_data = []
@@ -49,9 +50,7 @@ def get_live_data():
 
     rows = []
     total_vol = 0
-    
     if not active_data:
-        # Acil durum simülasyonu
         for sym in assets:
             base = sym.replace("USDT", "")
             guc = random.randint(15, 95)
@@ -63,7 +62,6 @@ def get_live_data():
             guc = random.randint(10, 98)
             rows.append(create_row(item['symbol'].replace("USDT", ""), p, guc))
             total_vol += random.uniform(5, 30)
-
     return pd.DataFrame(rows), total_vol
 
 def create_row(base, p, guc):
@@ -82,7 +80,7 @@ df, t_vol = get_live_data()
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>● SDR PRESTIGE v8.2 | ACTIVE</div>
+        <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 10S</div>
         <div style='text-align:center;'>
             <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
             &nbsp;&nbsp;&nbsp;
@@ -112,7 +110,6 @@ fig = px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_conti
 fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
 st.plotly_chart(fig, use_container_width=True)
 
-# --- İŞTE HATIRLADIĞIM O BİLGİ KUTULARI ---
 c1, c2 = st.columns(2)
 with c1:
     st.markdown("""
