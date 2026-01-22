@@ -10,7 +10,7 @@ from streamlit_autorefresh import st_autorefresh
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
 # --- 2. GÜNCELLEME MOTORU (30 Saniyede bir kesin yeniler) ---
-st_autorefresh(interval=30 * 1000, key="datarefresh")
+st_autorefresh(interval=20 * 1000, key="datarefresh")
 
 # --- 3. CSS TASARIM ---
 st.markdown("""
@@ -56,7 +56,7 @@ else:
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     try:
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=5) # Zaman aşımını 5 sn yaptık
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=30) # Zaman aşımını 30 sn yaptık
         data = r.json()
         active = [i for i in data if i['symbol'] in assets]
         rows = []
@@ -146,3 +146,4 @@ if not df.empty:
         """, unsafe_allow_html=True)
 
 st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan • binance public api data</p>", unsafe_allow_html=True)
+
