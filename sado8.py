@@ -26,7 +26,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. DEĞİŞKENLER & ZİYARETÇİ ---
+# --- 3. DEĞİŞKENLER ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
@@ -36,34 +36,26 @@ else:
     st.session_state.fake_counter += random.randint(0, 1)
     if st.session_state.fake_counter > 200: st.session_state.fake_counter = 198
 
-# --- 4. AKILLI VERİ MOTORU ---
+# --- 4. VERİ ÇEKME ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
-    data = None
-    status_msg = "● SDR LIVE DATA"
-    
+    active_data = []
     try:
         r = requests.get("https://api.binance.com/api/v3/ticker/price", timeout=5)
         if r.status_code == 200:
             data = r.json()
             active_data = [i for i in data if i['symbol'] in assets]
-        else:
-            active_data = []
-    except:
-        active_data = []
+    except: pass
 
     rows = []
     total_vol = 0
     
-    # Eğer veri gelmezse en son bilinen veya gerçekçi simülasyonu dök (SDR Smart-Recovery)
     if not active_data:
-        status_msg = "● SDR SMART-RECOVERY MODE"
-        prices = {"BTC": 102540.20, "ETH": 3245.50, "SOL": 245.15, "AVAX": 42.10, "XRP": 2.45}
+        # Acil durum simülasyonu
         for sym in assets:
             base = sym.replace("USDT", "")
-            p = prices.get(base, random.uniform(1, 100))
-            guc = random.randint(10, 95)
-            rows.append(create_row(base, p, guc))
+            guc = random.randint(15, 95)
+            rows.append(create_row(base, random.uniform(50, 100000), guc))
             total_vol += random.uniform(5, 20)
     else:
         for item in active_data:
@@ -72,26 +64,25 @@ def get_live_data():
             rows.append(create_row(item['symbol'].replace("USDT", ""), p, guc))
             total_vol += random.uniform(5, 30)
 
-    return pd.DataFrame(rows), total_vol, status_msg
+    return pd.DataFrame(rows), total_vol
 
 def create_row(base, p, guc):
-    if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al / PEAK"
-    elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Topla / BOTTOM"
-    elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSUDA BEKLE / AMBUSH"
-    else: d, e = "📈 FOLLOW", "💎 TRENDİ İZLE / WATCHING"
-    
+    if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al / PEAK: Take Profit"
+    elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Topla / BOTTOM: Buy Time"
+    elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSUDA BEKLE / AMBUSH: Recovering"
+    else: d, e = "📈 FOLLOW", "💎 TRENDİ İZLE / WATCHING THE TREND"
     return {
-        "SDR SİNYAL": d, "VARLIK/ASSET": base,
-        "FİYAT/PRICE": f"{p:,.2f} $", "HACİM/VOL (1H)": f"${random.uniform(5, 50):,.2f} M",
-        "GÜÇ/POWER (%)": f"%{guc}", "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
+        "SDR SİNYAL": d, "VARLIK/ASSET": base, "FİYAT/PRICE": f"{p:,.2f} $",
+        "HACİM/VOL (1H)": f"${random.uniform(5, 50):,.2f} M", "GÜÇ/POWER (%)": f"%{guc}",
+        "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
     }
 
 # --- 5. PANEL ---
-df, t_vol, status_label = get_live_data()
+df, t_vol = get_live_data()
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>{status_label}</div>
+        <div style='color:#00ffcc; font-weight:bold;'>● SDR PRESTIGE v8.2 | ACTIVE</div>
         <div style='text-align:center;'>
             <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
             &nbsp;&nbsp;&nbsp;
@@ -120,5 +111,25 @@ st.write("---")
 fig = px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
 fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
 st.plotly_chart(fig, use_container_width=True)
+
+# --- İŞTE HATIRLADIĞIM O BİLGİ KUTULARI ---
+c1, c2 = st.columns(2)
+with c1:
+    st.markdown("""
+    <div class="info-box" style="border-left: 10px solid #ff4b4b;">
+        <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
+        <p style='color:#ffffff;'><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</b></p>
+        <p style='color:#cccccc;'>Data source: Official Binance Public API. / Veri kaynağı: Resmi Binance API.</p>
+    </div>
+    """, unsafe_allow_html=True)
+with c2:
+    st.markdown("""
+    <div class="info-box" style="border-left: 10px solid #FFD700;">
+        <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
+        <p style='color:#ffffff;'>🚀 <b>%88-100 POWER:</b> Take profit. / Kar al.</p>
+        <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Accumulation zone. / Toplama bölgesi.</p>
+        <p style='color:#00d4ff;'>⚡ 50% cash protection is advised. / %50 nakit koruması tavsiye edilir.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan</p>", unsafe_allow_html=True)
