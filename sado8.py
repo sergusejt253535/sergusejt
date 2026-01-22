@@ -6,10 +6,28 @@ import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR ---
+# --- 1. AYARLAR & GİZLİ GİRİŞ KAPISI ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU (GÜVENLİ VE STABİL 15 SANİYE) ---
+if 'authenticated' not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.markdown("<h1 style='color: #FFD700; text-align: center; font-family: Arial Black;'>🛡️ SDR PRESTIGE ACCESS</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='color: white; text-align: center;'>Giriş yapmak için özel anahtarınızı kullanın.</p>", unsafe_allow_html=True)
+    
+    # ŞİFRE BURADA GÜNCELLENDİ: serguxy2026
+    password = st.text_input("SDR GİZLİ ANAHTAR / ACCESS KEY:", type="password")
+    
+    if st.button("SİSTEME GİRİŞ YAP"):
+        if password == "serguxy2026":
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("❌ HATALI ANAHTAR! / INVALID KEY!")
+    st.stop()
+
+# --- 2. GÜNCELLEME MOTORU (15 Saniye - Üstte 10S görünür) ---
 st_autorefresh(interval=15 * 1000, key="datarefresh")
 
 # --- 3. CSS TASARIM ---
@@ -28,15 +46,14 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER ---
+# --- 4. DEĞİŞKENLER & VERİ MOTORU ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
 if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(150, 190)
+    st.session_state.fake_counter = random.randint(150, 200)
 else:
     st.session_state.fake_counter += random.randint(0, 1)
-    if st.session_state.fake_counter > 200: st.session_state.fake_counter = 198
 
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
@@ -50,30 +67,23 @@ def get_live_data():
 
     rows = []
     total_vol = 0
-    if not active_data:
-        for sym in assets:
-            base = sym.replace("USDT", "")
-            guc = random.randint(15, 95)
-            rows.append(create_row(base, random.uniform(50, 100000), guc))
-            total_vol += random.uniform(5, 20)
-    else:
-        for item in active_data:
-            p = float(item['price'])
-            guc = random.randint(10, 98)
-            rows.append(create_row(item['symbol'].replace("USDT", ""), p, guc))
-            total_vol += random.uniform(5, 30)
+    for sym in assets:
+        item = next((i for i in active_data if i['symbol'] == sym), None)
+        p = float(item['price']) if item else random.uniform(50, 105000)
+        guc = random.randint(10, 98)
+        
+        if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al / PEAK: Take Profit"
+        elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Topla / BOTTOM: Buy Time"
+        elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSUDA BEKLE / AMBUSH: Recovering"
+        else: d, e = "📈 FOLLOW", "💎 TRENDİ İZLE / WATCHING THE TREND"
+        
+        rows.append({
+            "SDR SİNYAL": d, "VARLIK/ASSET": sym.replace("USDT", ""),
+            "FİYAT/PRICE": f"{p:,.2f} $", "HACİM/VOL (1H)": f"${random.uniform(5, 55):,.2f} M",
+            "GÜÇ/POWER (%)": f"%{guc}", "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
+        })
+        total_vol += random.uniform(10, 45)
     return pd.DataFrame(rows), total_vol
-
-def create_row(base, p, guc):
-    if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al / PEAK: Take Profit"
-    elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Topla / BOTTOM: Buy Time"
-    elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSUDA BEKLE / AMBUSH: Recovering"
-    else: d, e = "📈 FOLLOW", "💎 TRENDİ İZLE / WATCHING THE TREND"
-    return {
-        "SDR SİNYAL": d, "VARLIK/ASSET": base, "FİYAT/PRICE": f"{p:,.2f} $",
-        "HACİM/VOL (1H)": f"${random.uniform(5, 50):,.2f} M", "GÜÇ/POWER (%)": f"%{guc}",
-        "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
-    }
 
 # --- 5. PANEL ---
 df, t_vol = get_live_data()
@@ -112,21 +122,8 @@ st.plotly_chart(fig, use_container_width=True)
 
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown("""
-    <div class="info-box" style="border-left: 10px solid #ff4b4b;">
-        <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p style='color:#ffffff;'><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</b></p>
-        <p style='color:#cccccc;'>Data source: Official Binance Public API. / Veri kaynağı: Resmi Binance API.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="info-box" style="border-left: 10px solid #ff4b4b;"><h3 style="color:#ff4b4b; margin-top:0;">⚠️ YASAL UYARI / LEGAL NOTICE</h3><p style="color:white;">YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</p></div>', unsafe_allow_html=True)
 with c2:
-    st.markdown("""
-    <div class="info-box" style="border-left: 10px solid #FFD700;">
-        <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
-        <p style='color:#ffffff;'>🚀 <b>%88-100 POWER:</b> Take profit. / Kar al.</p>
-        <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Accumulation zone. / Toplama bölgesi.</p>
-        <p style='color:#00d4ff;'>⚡ 50% cash protection is advised. / %50 nakit koruması tavsiye edilir.</p>
-    </div>
-    """, unsafe_allow_html=True)
+    st.markdown('<div class="info-box" style="border-left: 10px solid #FFD700;"><h3 style="color:#FFD700; margin-top:0;">🛡️ SDR STRATEJİ / STRATEGY</h3><p style="color:white;">🚀 <b>%88-100 POWER:</b> Take Profit.<br>📉 <b>%0-15 POWER:</b> Accumulation Zone.</p></div>', unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan</p>", unsafe_allow_html=True)
