@@ -6,10 +6,10 @@ import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR (İLK SIRADA OLMAK ZORUNDA) ---
+# --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU ---
+# --- 2. GÜNCELLEME MOTORU (30 Saniyede bir kesin yeniler) ---
 st_autorefresh(interval=30 * 1000, key="datarefresh")
 
 # --- 3. CSS TASARIM ---
@@ -43,7 +43,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER ---
+# --- 4. DEĞİŞKENLER & ZAMAN ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
@@ -56,7 +56,7 @@ else:
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     try:
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=5) # Zaman aşımını 5 sn yaptık
         data = r.json()
         active = [i for i in data if i['symbol'] in assets]
         rows = []
@@ -87,7 +87,7 @@ def get_live_data():
 # --- 5. EKRAN TASARIMI ---
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 30S</div>
+        <div style='color:#00ffcc; font-weight:bold;'>● LIVE API ACTIVE | {su_an_tr.strftime("%S")}s</div>
         <div style='text-align:center;'>
             <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
             &nbsp;&nbsp;&nbsp;&nbsp;
@@ -118,6 +118,10 @@ if not df.empty:
     
     st.write("---")
     
+    # TURBO GÜNCELLEME BUTONU
+    if st.button('🔄 TABLOYU CANLANDIR (REFRESH DATA)'):
+        st.rerun()
+
     st.write("### 📊 GÜÇ ANALİZİ (%) / GLOBAL POWER PERCENTAGE")
     fig = px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
@@ -129,7 +133,7 @@ if not df.empty:
         <div class="info-box" style="border-left: 10px solid #ff4b4b;">
             <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
             <p style='color:#ffffff;'><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</b></p>
-            <p style='color:#cccccc;'>Data source: Official Binance Public API. / Veri kaynağı: Resmi Binance API.</p>
+            <p style='color:#cccccc;'>Data source: Official Binance Public API.</p>
         </div>
         """, unsafe_allow_html=True)
     with c2:
@@ -137,8 +141,7 @@ if not df.empty:
         <div class="info-box" style="border-left: 10px solid #FFD700;">
             <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
             <p style='color:#ffffff;'>🚀 <b>%88-100 POWER:</b> Take profit. / Kar al.</p>
-            <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Accumulation zone. / Toplama bölgesi.</p>
-            <p style='color:#00d4ff;'>⚡ 50% cash protection is advised. / %50 nakit koruması tavsiye edilir.</p>
+            <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Accumulation zone.</p>
         </div>
         """, unsafe_allow_html=True)
 
