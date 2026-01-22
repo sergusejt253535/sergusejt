@@ -9,10 +9,10 @@ from streamlit_autorefresh import st_autorefresh
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU (15 Saniye) ---
+# --- 2. GÜNCELLEME MOTORU (15 Saniyeye çekildi) ---
 st_autorefresh(interval=15 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
+# --- 3. CSS TASARIM (Senin kodundaki tam liste) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
@@ -43,7 +43,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER ---
+# --- 4. DEĞİŞKENLER VE ZİYARETÇİ ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
@@ -56,28 +56,21 @@ else:
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     try:
-        # ANA BAĞLANTIYI DENE
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=15)
-        if r.status_code != 200:
-            # YAN KAPIDAN GİRİŞ (Ticker Price)
-            r = requests.get("https://api.binance.com/api/v3/ticker/price", timeout=10)
-        
+        # Binance ana sunucusuna daha geniş timeout ile bağlan
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=20)
         data = r.json()
         active = [i for i in data if i['symbol'] in assets]
         rows = []
         total_vol = 0
-        
         for item in active:
             try:
-                # Veri formatına göre güvenli çekim
-                p = float(item.get('lastPrice') or item.get('price', 0))
-                h = float(item.get('highPrice') or (p * 1.02))
-                l = float(item.get('lowPrice') or (p * 0.98))
-                v_total = float(item.get('quoteVolume') or 120000000)
-                v_1h = (v_total / 1_000_000) / 24
+                p = float(item.get('lastPrice', 0))
+                h = float(item.get('highPrice', 0))
+                l = float(item.get('lowPrice', 0))
+                # Saatlik hacmi tam senin formülünle hesaplıyoruz
+                v_1h = (float(item.get('quoteVolume', 0)) / 1_000_000) / 24
                 total_vol += v_1h
-                
-                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else random.randint(45, 75)
+                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 0
                 
                 if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al & Nakde Geç / PEAK: Take Profit"
                 elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Kademeli Topla / BOTTOM: Buy Time"
@@ -93,7 +86,7 @@ def get_live_data():
         return pd.DataFrame(rows), total_vol
     except: return pd.DataFrame(), 0
 
-# --- 5. EKRAN TASARIMI ---
+# --- 5. ÜST PANEL ---
 st.markdown(f"""
     <div class="top-bar">
         <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 15S</div>
@@ -121,17 +114,20 @@ if not df.empty:
     
     st.write("---")
     
+    # Senin tam liste tablo başlıkların
     st.dataframe(df[["SDR SİNYAL", "VARLIK/ASSET", "FİYAT/PRICE", "HACİM/VOL (1H)", "GÜÇ/POWER (%)", "SDR ANALİZ / ANALYSIS"]].style.set_properties(**{
         'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
     }), use_container_width=True, hide_index=True, height=750)
     
     st.write("---")
     
+    # Grafik kısmı
     st.write("### 📊 GÜÇ ANALİZİ (%) / GLOBAL POWER PERCENTAGE")
     fig = px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
     
+    # Bilgi Kutuları
     c1, c2 = st.columns(2)
     with c1:
         st.markdown("""
@@ -151,6 +147,6 @@ if not df.empty:
         </div>
         """, unsafe_allow_html=True)
 else:
-    st.warning("⚠️ BAĞLANTI ZORLANIYOR... VERİLER BİRAZDAN GELECEK. / DATA LOADING...")
+    st.warning("⚠️ BINANCE BAĞLANTISI BEKLENİYOR... / WAITING FOR CONNECTION...")
 
 st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan • binance public api data</p>", unsafe_allow_html=True)
