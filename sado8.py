@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL | NEON", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_neon_engine")
+st_autorefresh(interval=15 * 1000, key="sdr_neon_vfinal")
 
 # --- 2. NEON TURKUAZ TASARIM (CSS) ---
 st.markdown("""
@@ -26,7 +26,6 @@ st.markdown("""
         color: #ffffff; text-align: center; font-family: 'Courier New'; 
         font-size: 24px; letter-spacing: 8px; margin-bottom: 35px; 
     }
-    /* Tablo neon turkuaz çerçeve */
     div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; border-radius: 15px; }
     .info-box { 
         background: #080808; border: 2px solid #00f2ff; 
@@ -64,7 +63,6 @@ def get_sdr_neon_data():
         for coin in r:
             i = r[coin]['USD']
             p, h, l, c = i['PRICE'], i['HIGH24HOUR'], i['LOW24HOUR'], i['CHANGEPCT24HOUR']
-            v = i['VOLUME24HOURTO'] / 1_000_000
             guc = int(((p - l) / (h - l)) * 100) if (h-l) != 0 else 50
             guc = max(min(guc, 99), 1)
             
@@ -82,12 +80,10 @@ def get_sdr_neon_data():
 df = get_sdr_neon_data()
 
 if not df.empty:
-    # VIP TABLO (Turkuaz Yazılar)
     st.dataframe(df.style.format({"FİYAT / PRICE": "{:,.2f} $", "DEĞİŞİM %": "% {:,.2f}", "GÜÇ / POWER %": "% {}"}).set_properties(**{
         'background-color': '#000', 'color': '#00f2ff', 'font-weight': 'bold'
     }), use_container_width=True, hide_index=True, height=500)
 
-    # --- GRAFİKLER ---
     st.write("---")
     g1, g2 = st.columns(2)
     with g1:
@@ -112,4 +108,7 @@ with c1:
 with c2:
     st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
         <h3 style='color:#00f2ff;'>🛡️ SDR VIP STRATEJİ / STRATEGY</h3>
-        <p>[TR
+        <p>[TR]: Güç %15 altı toplama bölgesidir. [EN]: Accumulate zone is below 15% Power.</p>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
