@@ -7,9 +7,9 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL | NEON", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_neon_v_dated")
+st_autorefresh(interval=15 * 1000, key="sdr_gold_name_engine")
 
-# --- 2. NEON TURKUAZ TASARIM (CSS) ---
+# --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
@@ -21,10 +21,12 @@ st.markdown("""
     .main-title { 
         color: #00f2ff; text-align: center; font-family: 'Impact'; 
         font-size: 65px; text-shadow: 0px 0px 30px #00f2ff; 
+        margin-bottom: 0px;
     }
     .sub-title { 
-        color: #ffffff; text-align: center; font-family: 'Courier New'; 
+        color: #FFD700; text-align: center; font-family: 'Courier New'; 
         font-size: 24px; letter-spacing: 8px; margin-bottom: 35px; 
+        font-weight: bold; text-shadow: 0px 0px 10px #FFD700;
     }
     div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; border-radius: 15px; }
     .info-box { 
@@ -36,13 +38,13 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ZAMAN VE TARİH DİLİMLERİ ---
+# --- 3. ZAMAN VE TARİH ---
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR CORE V4.3 ACTIVE</div>
+        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR CORE V4.4 ACTIVE</div>
         <div style='color:white; font-family:monospace; font-size:18px;'>
             📅 <b>DATE:</b> {tr_now.strftime("%d.%m.%Y")} | 
             <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
@@ -56,7 +58,7 @@ st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_ht
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
 # --- 4. VERİ MOTORU ---
-def get_sdr_neon_data():
+def get_sdr_exclusive_data():
     assets = "BTC,ETH,SOL,AVAX,XRP,BNB,ADA,DOGE,LINK,SUI,PEPE,FET,RENDER,MATIC"
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD"
     rows = []
@@ -79,7 +81,7 @@ def get_sdr_neon_data():
     except: return pd.DataFrame()
     return pd.DataFrame(rows)
 
-df = get_sdr_neon_data()
+df = get_sdr_exclusive_data()
 
 if not df.empty:
     st.dataframe(df.style.format({"FİYAT / PRICE": "{:,.2f} $", "DEĞİŞİM %": "% {:,.2f}", "GÜÇ / POWER %": "% {}"}).set_properties(**{
@@ -97,7 +99,7 @@ if not df.empty:
         fig2.update_layout(title="SDR Güç Endeksi / SDR Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
         st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.info("📡 Veri Hattı Güncelleniyor... / Updating SDR Hub...")
+    st.info("📡 Veri Hattı Yenileniyor... / Syncing SDR Hub...")
 
 # --- 5. BİLGİ KUTULARI ---
 st.write("---")
