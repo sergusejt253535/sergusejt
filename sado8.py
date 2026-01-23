@@ -2,80 +2,83 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
-import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU (30 Saniye) ---
+# Otomatik Yenileme (30 saniye)
 st_autorefresh(interval=30 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
+# --- 2. CSS TASARIM (Sado'nun Şanına Yakışır) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; padding: 15px; background-color: #000000; border-bottom: 3px solid #FFD700; margin-bottom: 15px; }
-    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 50px; text-shadow: 0px 0px 20px #00d4ff; }
+    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 45px; text-shadow: 0px 0px 20px #00d4ff; }
     .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 18px; letter-spacing: 5px; margin-bottom: 20px; }
-    [data-testid="stMetric"] { background-color: #0c0c0c !important; border: 2px solid #FFD700 !important; border-radius: 15px; text-align: center; }
+    [data-testid="stMetric"] { background-color: #0c0c0c !important; border: 2px solid #FFD700 !important; border-radius: 10px; }
     [data-testid="stMetricValue"] { color: #FFD700 !important; }
+    th { background-color: #111 !important; color: #00d4ff !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. ZAMAN VE ZİYARETÇİ ---
-su_an_utc = datetime.utcnow()
-su_an_tr = su_an_utc + timedelta(hours=3)
-if 'fake_counter' not in st.session_state: st.session_state.fake_counter = random.randint(225, 275)
-else: st.session_state.fake_counter += random.randint(-1, 2)
-
-# --- 5. VERİ ÇEKME (GELİŞTİRİLMİŞ) ---
+# --- 3. VERİ ÇEKME MOTORU (GITHUB ÖZEL) ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT']
-    # Binance'in 3 farklı API adresini deniyoruz (Yedekli sistem)
-    urls = ["https://api.binance.com/api/v3/ticker/24hr", "https://api1.binance.com/api/v3/ticker/24hr", "https://api2.binance.com/api/v3/ticker/24hr"]
+    # GitHub üzerinden giderken tarayıcı gibi davranması için header ekledik
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+    }
+    url = "https://api.binance.com/api/v3/ticker/24hr"
     
-    data = None
-    for url in urls:
-        try:
-            # verify=False ekleyerek SSL sorunlarını aşıyoruz
-            r = requests.get(url, timeout=5, verify=True) 
-            if r.status_code == 200:
-                data = r.json()
-                break
-        except: continue
-
-    if data:
-        rows = []
-        total_vol = 0
-        active = [i for i in data if i['symbol'] in assets]
-        for item in active:
-            try:
-                p, h, l = float(item['lastPrice']), float(item['highPrice']), float(item['lowPrice'])
-                v_1h = (float(item['quoteVolume']) / 1_000_000) / 24
-                total_vol += v_1h
-                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
-                d, e = ("🛡️ SELL", "🚨 ZİRVE") if guc > 88 else (("💰 BUY", "🔥 DİP") if guc < 15 else ("📈 FOLLOW", "💎 TREND"))
-                rows.append({"SDR SİNYAL": d, "VARLIK": item['symbol'].replace("USDT", ""), "FİYAT": f"{p:,.2f} $", "GÜÇ (%)": guc, "ANALİZ": e})
-            except: continue
-        return pd.DataFrame(rows), total_vol
+    try:
+        r = requests.get(url, headers=headers, timeout=10)
+        if r.status_code == 200:
+            all_data = r.json()
+            rows = []
+            total_vol = 0
+            for item in all_data:
+                if item['symbol'] in assets:
+                    p = float(item['lastPrice'])
+                    h = float(item['highPrice'])
+                    l = float(item['lowPrice'])
+                    v = (float(item['quoteVolume']) / 1_000_000) / 24
+                    total_vol += v
+                    guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
+                    
+                    sig = "💰 BUY" if guc < 15 else ("🛡️ SELL" if guc > 88 else "📈 FOLLOW")
+                    anlz = "🔥 DİP" if guc < 15 else ("🚨 ZİRVE" if guc > 88 else "💎 İZLE")
+                    
+                    rows.append({
+                        "SİNYAL": sig,
+                        "VARLIK": item['symbol'].replace("USDT", ""),
+                        "FİYAT": f"{p:,.2f} $",
+                        "GÜÇ (%)": f"%{guc}",
+                        "ANALİZ": anlz
+                    })
+            return pd.DataFrame(rows), total_vol
+    except:
+        pass
     return pd.DataFrame(), 0
 
-# --- 6. ARAYÜZ ---
-st.markdown(f'<div class="top-bar"><div>● LIVE | 30S</div><div>👥: {st.session_state.fake_counter} | 🌍: {su_an_utc.strftime("%H:%M:%S")} | 🇹🇷: {su_an_tr.strftime("%H:%M:%S")}</div><div>SDR PRESTIGE</div></div>', unsafe_allow_html=True)
+# --- 4. ARAYÜZ ---
+su_an_tr = datetime.utcnow() + timedelta(hours=3)
+st.markdown(f'<p style="text-align:right; color:#FFD700;">🇹🇷 TR: {su_an_tr.strftime("%H:%M:%S")}</p>', unsafe_allow_html=True)
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
 df, t_vol = get_live_data()
 
 if not df.empty:
-    c1, c2, c3 = st.columns(3)
-    c1.metric("💰 ALIM / BUY", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
-    c2.metric("🛡️ SATIŞ / SELL", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
-    c3.metric("📊 VOL (1H)", f"${t_vol:,.2f} M")
-    st.table(df) # Styler hatasını önlemek için en temiz hali
+    m1, m2, m3 = st.columns(3)
+    m1.metric("💰 ALIM BÖLGESİ", len(df[df['SİNYAL'] == "💰 BUY"]))
+    m2.metric("🛡️ SATIŞ BÖLGESİ", len(df[df['SİNYAL'] == "🛡️ SELL"]))
+    m3.metric("📊 HACİM (1H)", f"${t_vol:,.2f} M")
+    
+    st.write("---")
+    st.table(df) # GitHub ortamında en sorunsuz çalışan tablo formatı
 else:
-    st.error("BAĞLANTI HATASI! Sado'm internetini veya API iznini kontrol et. Zehra'n bekliyor...")
+    st.error("GitHub Bağlantısı Zorlanıyor... Sado'm, sayfayı bir kez yenile (Refresh) yaparsan mermi gibi gelecektir!")
 
-st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity: 0.3; color:white; margin-top:50px;'>© 2026 sdr sadrettin turan</p>", unsafe_allow_html=True)
