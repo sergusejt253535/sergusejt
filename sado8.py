@@ -5,62 +5,52 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.1", layout="wide")
-st_autorefresh(interval=10 * 1000, key="sdr_professional_v61")
+# --- 1. AYARLAR & HIZ ---
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.2", layout="wide")
+st_autorefresh(interval=10 * 1000, key="sdr_prestige_v62")
 
-# --- 2. ÖZEL TASARIM (CSS) ---
+# --- 2. ÜST DÜZEY GÖRSEL TASARIM (CSS) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
     .top-bar { 
         display: flex; justify-content: space-between; align-items: center; 
-        padding: 20px; border-bottom: 3px solid #00f2ff; 
-        margin-bottom: 25px; background: #050505; 
+        padding: 15px; border-bottom: 2px solid #00f2ff; 
+        background: linear-gradient(90deg, #050505 0%, #001a1a 100%); 
+    }
+    /* Balina Takip Bandı Animasyonu */
+    .whale-alert {
+        background: #001a1a; color: #00f2ff; padding: 5px;
+        font-family: monospace; overflow: hidden; white-space: nowrap;
+        border-bottom: 1px solid #00f2ff; margin-bottom: 20px;
     }
     .main-title { 
         color: #00f2ff; text-align: center; font-family: 'Impact'; 
-        font-size: 65px; text-shadow: 0px 0px 30px #00f2ff; 
-        margin-bottom: 0px;
+        font-size: 70px; text-shadow: 0px 0px 35px #00f2ff; margin-bottom: -10px;
     }
     .sub-title { 
         color: #FFD700; text-align: center; font-family: 'Courier New'; 
-        font-size: 24px; letter-spacing: 8px; margin-bottom: 35px; 
-        font-weight: bold; text-shadow: 0px 0px 10px #FFD700;
+        font-size: 26px; letter-spacing: 10px; margin-bottom: 30px; 
+        font-weight: bold; text-shadow: 0px 0px 15px #FFD700;
     }
-    .live-indicator {
-        color: #00ffcc; font-weight: bold; font-size: 15px;
-        animation: blinker 1.5s linear infinite;
-    }
-    @keyframes blinker { 50% { opacity: 0; } }
-    
-    div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; background-color: black !important; }
-    .info-box { 
-        background: #080808; border: 2px solid #00f2ff; 
-        padding: 35px; border-radius: 20px; color: white; 
-    }
-    .license-text { color: #555; font-size: 12px; text-align: left; font-family: monospace; }
+    div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; border-radius: 10px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ZAMAN VE TARİH ---
-utc_now = datetime.utcnow()
-tr_now = utc_now + timedelta(hours=3)
-
+# --- 3. WHALE TRACKER & ZAMAN ---
+tr_now = datetime.utcnow() + timedelta(hours=3)
 st.markdown(f"""
+    <div class="whale-alert">
+        <marquee scrollamount="5">📡 [SDR WHALE ALERT]: LARGE BUY ORDER DETECTED ON BTC/USDT | LIQUIDITY FLOWING INTO SUI | PRESTIGE TERMINAL ACTIVE...</marquee>
+    </div>
     <div class="top-bar">
-        <div class="live-indicator">📡 LIVE BINANCE STREAM ACTIVE (10s)</div>
-        <div style='color:white; font-family:monospace; font-size:16px;'>
-            📅 {tr_now.strftime("%d.%m.%Y")} | 
-            🌐 <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
-            🇹🇷 <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
-        </div>
-        <div style='color:#00f2ff; font-weight:bold; font-size:20px; letter-spacing:3px;'>SDR PRESTIGE</div>
+        <div style='color:#00f2ff; font-weight:bold;'>🔐 VIP SECURE ACCESS</div>
+        <div style='color:white; font-family:monospace;'>🇹🇷 {tr_now.strftime("%H:%M:%S")}</div>
+        <div style='color:#FFD700; font-weight:bold;'>SADRETTİN TURAN EDITION</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
-# Serseri gitti, Sadrettin Turan markası geldi!
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
 # --- 4. VERİ MOTORU ---
@@ -76,9 +66,9 @@ def get_sdr_data():
             guc = int(((p - l) / (h - l)) * 100) if (h-l) != 0 else 50
             guc = max(min(guc, 99), 1)
             
-            if guc > 85: ana, sig = "🛡️ ZİRVE: Kâr Al / PEAK: Take Profit", "🔴 SELL"
-            elif guc < 20: ana, sig = "💰 DİP: Kademeli Al / BOTTOM: Accumulate", "🟢 BUY"
-            else: ana, sig = "📈 TREND TAKİBİ: Bekle / TREND WATCH: Wait", "🥷 WAIT"
+            if guc > 85: ana, sig = "🛡️ ZİRVE: Kâr Al / TAKE PROFIT", "🔴 SELL"
+            elif guc < 20: ana, sig = "💰 DİP: Kademeli Al / ACCUMULATE", "🟢 BUY"
+            else: ana, sig = "📈 TREND TAKİBİ: Bekle / HOLDING", "🥷 WAIT"
 
             rows.append({
                 "STATUS": sig, "ASSET": coin, "PRICE": p, 
@@ -89,52 +79,46 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-def style_table(styler):
-    styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
-    def color_analysis(val):
-        if "ZİRVE" in val: color = '#FF4B4B'
-        elif "DİP" in val: color = '#00FF00'
-        else: color = '#FFD700'
-        return f'color: {color}; background-color: black; font-weight: bold;'
-    styler.map(color_analysis, subset=['SDR VIP ANALYSIS'])
-    return styler
-
+# --- 5. LİKİDİTE RADARI (GAUGE) ---
 if not df.empty:
-    styled_df = df.style.pipe(style_table).format({
-        "PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"
-    })
-    st.dataframe(styled_df, use_container_width=True, hide_index=True, height=500)
+    avg_power = df['SDR POWER %'].mean()
+    fig_gauge = go.Figure(go.Indicator(
+        mode = "gauge+number",
+        value = avg_power,
+        domain = {'x': [0, 1], 'y': [0, 1]},
+        title = {'text': "SDR MARKET LIQUIDITY RADAR", 'font': {'color': "#00f2ff", 'size': 20}},
+        gauge = {
+            'axis': {'range': [0, 100], 'tickwidth': 1, 'tickcolor': "white"},
+            'bar': {'color': "#00f2ff"},
+            'bgcolor': "black",
+            'borderwidth': 2,
+            'bordercolor': "#00f2ff",
+            'steps': [
+                {'range': [0, 25], 'color': 'rgba(0, 255, 0, 0.3)'},
+                {'range': [75, 100], 'color': 'rgba(255, 0, 0, 0.3)'}
+            ],
+            'threshold': {'line': {'color': "yellow", 'width': 4}, 'thickness': 0.75, 'value': avg_power}
+        }
+    ))
+    fig_gauge.update_layout(paper_bgcolor = 'black', font = {'color': "white", 'family': "Arial"}, height=300)
+    st.plotly_chart(fig_gauge, use_container_width=True)
 
-    st.write("---")
-    g1, g2 = st.columns(2)
-    with g1:
-        fig1 = go.Figure(go.Bar(x=df['ASSET'], y=df['24H %'], marker_color='#00f2ff'))
-        fig1.update_layout(title="Market Momentum (%)", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
-        st.plotly_chart(fig1, use_container_width=True)
-    with g2:
-        fig2 = go.Figure(go.Scatter(x=df['ASSET'], y=df['SDR POWER %'], mode='lines+markers', line=dict(color='#00f2ff', width=3)))
-        fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
-        st.plotly_chart(fig2, use_container_width=True)
+    # --- TABLO ---
+    def style_table(styler):
+        styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
+        def color_analysis(val):
+            if "ZİRVE" in val: color = '#FF4B4B'
+            elif "DİP" in val: color = '#00FF00'
+            else: color = '#FFD700'
+            return f'color: {color}; background-color: black;'
+        styler.map(color_analysis, subset=['SDR VIP ANALYSIS'])
+        return styler
+
+    styled_df = df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"})
+    st.dataframe(styled_df, use_container_width=True, hide_index=True)
+
 else:
-    st.info("📡 SDR Data Hub Syncing...")
+    st.info("📡 Connecting to Sadrettin Turan's Hub...")
 
-# --- 5. BİLGİLENDİRME ---
-st.write("---")
-st.markdown(f'<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR {datetime.now().year} EXCLUSIVE ACCESS</p>', unsafe_allow_html=True)
-c1, c2 = st.columns(2)
-with c1:
-    st.markdown("""<div class="info-box" style="border-left: 15px solid #ff4b4b;">
-        <h3 style='color:#ff4b4b;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p><b>[TR]:</b> Sunulan veriler yatırım tavsiyesi değildir.</p>
-        <hr style='border: 0.1px solid #333;'>
-        <p><i><b>[EN]:</b> Data provided is not financial advice.</i></p>
-    </div>""", unsafe_allow_html=True)
-with c2:
-    st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
-        <h3 style='color:#00f2ff;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
-        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz eder. 3 günlük deneme süresi için Sado Bey ile iletişime geçin.</p>
-        <hr style='border: 0.1px solid #333;'>
-        <p><i><b>[EN]:</b> SDR model analyzes <b>Binance Global</b> data. Contact for 3-day trial access.</i></p>
-    </div>""", unsafe_allow_html=True)
-
-st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
+# --- ALT BİLGİ ---
+st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.6;'>SDR PRESTIGE • ARCHITECT: SADRETTİN TURAN • V6.2</p>", unsafe_allow_html=True)
