@@ -50,6 +50,21 @@ st.markdown("""
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
+# Veri Motoru kısmına eklenecek:
+tarih_sdr = su_an_tr.strftime("%d.%m.%Y")
+saat_sdr = su_an_tr.strftime("%H:%M:%S")
+
+# Tasarım (Top-Bar) kısmını şu şekilde güncelle:
+st.markdown(f"""
+    <div class="top-bar">
+        <div style='color:#00ffcc; font-weight:bold;'>● LIVE STREAM</div>
+        <div style='text-align:center;'>
+            <span style='color:#FFD700; font-size:20px; font-weight:bold;'>📅 {tarih_sdr}</span>
+            &nbsp;&nbsp;&nbsp;
+            <span style='color:#ffffff; font-size:20px; font-weight:bold;'>🕒 {saat_sdr}</span>
+        </div>
+        <div style='color:#FFD700; font-weight:bold;'>SDR PRESTIGE</div>
+    </div>
 if 'fake_counter' not in st.session_state:
     st.session_state.fake_counter = random.randint(150, 200)
 else:
@@ -127,3 +142,4 @@ with c2:
     st.markdown('<div class="info-box" style="border-left: 10px solid #FFD700;"><h3 style="color:#FFD700; margin-top:0;">🛡️ SDR STRATEJİ / STRATEGY</h3><p style="color:white;">🚀 <b>%88-100 POWER:</b> Take Profit.<br>📉 <b>%0-15 POWER:</b> Accumulation Zone.</p></div>', unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan</p>", unsafe_allow_html=True)
+
