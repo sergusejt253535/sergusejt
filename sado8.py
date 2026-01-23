@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_stable_engine")
+st_autorefresh(interval=15 * 1000, key="sdr_final_heist")
 
 # --- 2. CSS TASARIM ---
 st.markdown("""
@@ -18,23 +18,22 @@ st.markdown("""
     .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 20px; letter-spacing: 5px; margin-bottom: 20px; }
     div[data-testid="stDataFrame"] { background-color: #000000 !important; border: 4px solid #FFD700 !important; border-radius: 15px; }
     .stDataFrame td { color: #FFD700 !important; font-weight: bold !important; font-size: 18px !important; }
-    .info-box { background-color: #000000; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; color: white; min-height: 250px; }
+    .info-box { background-color: #111; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; color: white; min-height: 250px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. VERİ MOTORU ---
+# --- 3. VERİ MOTORU (AGRESİF MOD) ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     rows = []
     
     try:
-        # Binance'e en hızlı vuruş
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", headers=headers, timeout=10)
-        data = r.json()
-        active_data = [d for d in data if d['symbol'] in assets]
+        # Doğrudan Pandas ile JSON okumayı dene (Bazen engelleri aşar)
+        url = "https://api.binance.com/api/v3/ticker/24hr"
+        all_data = pd.read_json(url)
+        active_data = all_data[all_data['symbol'].isin(assets)]
         
-        for item in active_data:
+        for _, item in active_data.iterrows():
             p = float(item['lastPrice'])
             h = float(item['highPrice'])
             l = float(item['lowPrice'])
@@ -59,13 +58,17 @@ def get_live_data():
                 "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": ana
             })
     except:
-        # Veri gelmezse boş satır göster ki tablo gitmesin
+        # Hata durumunda boş dönme, "Veri Bekleniyor" satırları oluştur
         for sym in assets:
-            rows.append({"SDR SİNYAL": "🔄 YÜKLENİYOR", "VARLIK / ASSET": sym.replace("USDT", ""), "FİYAT / PRICE": "---", "HACİM / VOL (1H)": "---", "GÜÇ / POWER (%)": "---", "POWER_NUM": 0, "ANALİZ / ANALYSIS": "BAĞLANTI BEKLENİYOR / WAITING CONNECTION"})
+            rows.append({
+                "SDR SİNYAL": "🔄 CONNECTING", "VARLIK / ASSET": sym.replace("USDT", ""),
+                "FİYAT / PRICE": "---", "HACİM / VOL (1H)": "---", 
+                "GÜÇ / POWER (%)": "%50", "POWER_NUM": 50, "ANALİZ / ANALYSIS": "API BEKLENİYOR / WAITING FOR API"
+            })
     
     return pd.DataFrame(rows)
 
-# --- 4. PANEL ÜST KISIM ---
+# --- 4. PANEL ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
@@ -80,22 +83,24 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 5. TABLO VE GRAFİK ---
 df = get_live_data()
 
-# Tabloyu her durumda basıyoruz (if df.empty şartı yok!)
+# ANA TABLO
 st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
     'background-color': '#000000', 'color': '#FFD700', 'font-weight': 'bold'
 }), use_container_width=True, hide_index=True, height=600)
 
 st.write("---")
+
+# GRAFİK
 fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
 fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
 st.plotly_chart(fig, use_container_width=True)
 
-# --- 6. DETAYLI ALT KUTULAR ---
+# --- 5. DETAYLI ALT KUTULAR ---
 st.write("---")
-c1, c2 = st.columns(2)
+c1, col_space, c2 = st.columns([10, 1, 10]) # Ortada boşluk bıraktık daha prestijli dursun
+
 with c1:
     st.markdown("""<div class="info-box" style="border-left: 12px solid #ff4b4b;">
         <h3 style='color:#ff4b4b;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
