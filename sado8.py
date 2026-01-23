@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL | NEON", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_neon_vfinal")
+st_autorefresh(interval=15 * 1000, key="sdr_neon_v_dated")
 
 # --- 2. NEON TURKUAZ TASARIM (CSS) ---
 st.markdown("""
@@ -36,15 +36,17 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ZAMAN DİLİMLERİ ---
+# --- 3. ZAMAN VE TARİH DİLİMLERİ ---
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR CORE V4.2 ACTIVE</div>
+        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR CORE V4.3 ACTIVE</div>
         <div style='color:white; font-family:monospace; font-size:18px;'>
-            <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
+            📅 <b>DATE:</b> {tr_now.strftime("%d.%m.%Y")} | 
+            <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
+            <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
         </div>
         <div style='color:#00f2ff; font-weight:bold; font-size:20px; letter-spacing:3px;'>SDR PRESTIGE</div>
     </div>
@@ -95,7 +97,7 @@ if not df.empty:
         fig2.update_layout(title="SDR Güç Endeksi / SDR Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
         st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.info("📡 Veri Akışı Bekleniyor... / Waiting for Hub...")
+    st.info("📡 Veri Hattı Güncelleniyor... / Updating SDR Hub...")
 
 # --- 5. BİLGİ KUTULARI ---
 st.write("---")
