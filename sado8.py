@@ -27,33 +27,22 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (MULTI-ENDPOINT BACKUP) ---
+# --- 4. VERİ MOTORU (BANKA SOYGUNU GİBİ HIZLI) ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
-    endpoints = [
-        "https://api.binance.com/api/v3/ticker/24hr",
-        "https://api1.binance.com/api/v3/ticker/24hr",
-        "https://api2.binance.com/api/v3/ticker/24hr",
-        "https://api3.binance.com/api/v3/ticker/24hr"
-    ]
-    
     rows = []
     total_vol = 0
-    data = None
-
-    # Sunucuları sırayla dene
-    for url in endpoints:
-        try:
-            r = requests.get(url, timeout=5)
-            if r.status_code == 200:
-                data = r.json()
-                break # Veri geldiyse döngüden çık
-        except:
-            continue
-
-    if data:
-        active_data = [d for d in data if d['symbol'] in assets]
-        for item in active_data:
+    
+    try:
+        # En basit ve hızlı Binance endpoint'i
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
+        data = r.json()
+        
+        # DataFrame'e çevirip süzme yapıyoruz (Daha garantidir)
+        all_df = pd.DataFrame(data)
+        active_df = all_df[all_df['symbol'].isin(assets)].copy()
+        
+        for index, item in active_df.iterrows():
             p = float(item['lastPrice'])
             h = float(item['highPrice'])
             l = float(item['lowPrice'])
@@ -72,6 +61,8 @@ def get_live_data():
                 "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v_1h:,.2f} M",
                 "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": e
             })
+    except:
+        pass
     
     return pd.DataFrame(rows), total_vol
 
@@ -122,15 +113,19 @@ if not df.empty:
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
 else:
-    st.error("🚨 BINANCE BAĞLANTISI KESİLDİ! / BINANCE CONNECTION LOST!")
-    st.info("Lütfen birkaç saniye bekleyin, sistem otomatik olarak yedek sunuculara bağlanacaktır.")
+    st.warning("🔄 VERİLER ÇEKİLİYOR... / FETCHING DATA...")
 
 # --- 7. ALT KUTULAR ---
-st.write("---")
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown('<div class="info-box"><b>⚠️ YASAL UYARI / LEGAL NOTICE</b><br>Not investment advice. Veriler Binance üzerinden gelir.</div>', unsafe_allow_html=True)
+    st.markdown("""<div class="info-box" style="border-left: 10px solid #ff4b4b;">
+        <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
+        <p><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR.</b> Veriler Binance API'den gelir.</p>
+    </div>""", unsafe_allow_html=True)
 with c2:
-    st.markdown('<div class="info-box"><b>🛡️ SDR STRATEJİ / STRATEGY</b><br>Updates every 15s. %88+ Peak, %15- Bottom.</div>', unsafe_allow_html=True)
+    st.markdown("""<div class="info-box" style="border-left: 10px solid #FFD700;">
+        <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
+        <p><b>%88+ POWER:</b> Kar Al. <b>%15- POWER:</b> Toplama.</p>
+    </div>""", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR SADRETTİN TURAN</p>", unsafe_allow_html=True)
