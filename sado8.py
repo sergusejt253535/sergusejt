@@ -40,11 +40,12 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. VERİ & TARİH ---
+# --- 4. VERİ & TARİH (UTC EKLENDİ) ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 tarih_sdr = su_an_tr.strftime("%d.%m.%Y")
-saat_sdr = su_an_tr.strftime("%H:%M:%S")
+saat_tr = su_an_tr.strftime("%H:%M:%S")
+saat_utc = su_an_utc.strftime("%H:%M:%S")
 
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
@@ -76,14 +77,16 @@ def get_live_data():
 # --- 5. PANEL ---
 df = get_live_data()
 
-# Üst Bar (Tarih, Saat ve 15s Uyarısı)
+# Üst Bar (UTC ve TR Saatleri Yan Yana)
 st.markdown(f"""
     <div class="top-bar">
         <div style='color:#00ffcc; font-weight:bold;'>OFFICIAL BINANCE API | UPDATE: 15S</div>
         <div style='text-align:center;'>
-            <span style='color:#FFD700; font-size:22px; font-weight:bold;'>📅 {tarih_sdr}</span>
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <span style='color:#ffffff; font-size:22px; font-weight:bold;'>🕒 {saat_sdr}</span>
+            <span style='color:#FFD700; font-size:20px; font-weight:bold;'>📅 {tarih_sdr}</span>
+            &nbsp;&nbsp;&nbsp;
+            <span style='color:#ffffff; font-size:18px; font-weight:bold;'>TR: {saat_tr}</span>
+            &nbsp;&nbsp;&nbsp;
+            <span style='color:#00d4ff; font-size:18px; font-weight:bold;'>UTC: {saat_utc}</span>
         </div>
         <div style='color:#FFD700; font-weight:bold;'>SDR PRESTIGE VIP</div>
     </div>
@@ -112,7 +115,7 @@ fig = px.bar(df, x='VARLIK / ASSET', y='POWER_VAL', color='POWER_VAL', color_con
 fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
 st.plotly_chart(fig, use_container_width=True)
 
-# Bilgilendirme Kutuları (Bilingual & Detaylı)
+# Bilgilendirme Kutuları
 c1, c2 = st.columns(2)
 with c1:
     st.markdown("""<div class="info-box" style="border-left: 10px solid #ff4b4b;">
