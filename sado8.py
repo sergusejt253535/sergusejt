@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR & TİCARİ KİMLİK ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.4.6", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_commercial_v46")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.4.8", layout="wide")
+st_autorefresh(interval=15 * 1000, key="sdr_global_stable_v48")
 
 # --- 2. ÜST DÜZEY TASARIM (CSS) ---
 st.markdown("""
@@ -37,16 +37,17 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ZAMAN VE TARİH ---
+# --- 3. ZAMAN VE TARİH (UTC & TR) ---
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V4.6</div>
-        <div style='color:white; font-family:monospace; font-size:18px;'>
-            📅 <b>DATE:</b> {tr_now.strftime("%d.%m.%Y")} | 
-            <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
+        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V4.8</div>
+        <div style='color:white; font-family:monospace; font-size:16px;'>
+            📅 {tr_now.strftime("%d.%m.%Y")} | 
+            🌐 <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
+            🇹🇷 <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
         </div>
         <div style='color:#00f2ff; font-weight:bold; font-size:20px; letter-spacing:3px;'>SDR PRESTIGE</div>
     </div>
@@ -97,8 +98,14 @@ if not df.empty:
         fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
         st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.info("📡 Connecting to SDR Prestige Hub...")
+    st.info("📡 Updating Global SDR Hub...")
 
 # --- 5. LİSANS & BİLGİLENDİRME (TR/EN) ---
 st.write("---")
-st.markdown('<p class="license-text">LICENSE KEY: SDR-VIP-777-2
+st.markdown('<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR SADRETTIN TURAN</p>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
+with c1:
+    st.markdown("""<div class="info-box" style="border-left: 15px solid #ff4b4b;">
+        <h3 style='color:#ff4b4b;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
+        <p><b>[TR]:</b> Bu yazılım özel bir algoritmik terminaldir. Sunulan veriler yatırım tavsiyesi değildir.</p>
+        <hr style='border: 0.1px solid #
