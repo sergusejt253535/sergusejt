@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR & TİCARİ KİMLİK ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.3", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_golden_analysis_v53")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.4", layout="wide")
+st_autorefresh(interval=15 * 1000, key="sdr_perfect_gold_v54")
 
 # --- 2. ÜST DÜZEY TASARIM (CSS) ---
 st.markdown("""
@@ -43,7 +43,7 @@ tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V5.3</div>
+        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V5.4</div>
         <div style='color:white; font-family:monospace; font-size:16px;'>
             📅 {tr_now.strftime("%d.%m.%Y")} | 
             🌐 <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
@@ -83,7 +83,7 @@ def get_sdr_data():
 df = get_sdr_data()
 
 if not df.empty:
-    # Analiz sütununu altın sarısı yapma (Styling)
+    # Stylings: Ana tablo Turkuaz, Analiz sütunu Altın Sarısı
     st.dataframe(df.style.format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"}).set_properties(**{
         'background-color': '#000', 'color': '#00f2ff', 'font-weight': 'bold'
     }, subset=['STATUS', 'ASSET', 'PRICE', '24H %', 'SDR POWER %']).set_properties(**{
@@ -98,4 +98,28 @@ if not df.empty:
         st.plotly_chart(fig1, use_container_width=True)
     with g2:
         fig2 = go.Figure(go.Scatter(x=df['ASSET'], y=df['SDR POWER %'], mode='lines+markers', line=dict(color='#00f2ff', width=3)))
-        fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='
+        fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
+        st.plotly_chart(fig2, use_container_width=True)
+else:
+    st.info("📡 Updating Global SDR Hub...")
+
+# --- 5. LİSANS & BİLGİLENDİRME ---
+st.write("---")
+st.markdown('<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR SADRETTIN TURAN</p>', unsafe_allow_html=True)
+c1, c2 = st.columns(2)
+with c1:
+    st.markdown("""<div class="info-box" style="border-left: 15px solid #ff4b4b;">
+        <h3 style='color:#ff4b4b;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
+        <p><b>[TR]:</b> Bu yazılım özel bir algoritmik terminaldir. Sunulan veriler yatırım tavsiyesi değildir.</p>
+        <hr style='border: 0.1px solid #333;'>
+        <p><i><b>[EN]:</b> This software is a proprietary algorithmic terminal. Data provided is not financial advice.</i></p>
+    </div>""", unsafe_allow_html=True)
+with c2:
+    st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
+        <h3 style='color:#00f2ff;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
+        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz ederek likidite dengesini izler. %88 üzeri sapmalarda kâr realizasyonu tetiklenir.</p>
+        <hr style='border: 0.1px solid #333;'>
+        <p><i><b>[EN]:</b> The SDR model analyzes <b>Binance Global</b> data to monitor liquidity balance. Profit-taking is triggered above 88% displacement.</i></p>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
