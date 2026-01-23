@@ -27,44 +27,53 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (KESİN VERİ AKIŞI) ---
+# --- 4. VERİ MOTORU (MULTI-ENDPOINT BACKUP) ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
+    endpoints = [
+        "https://api.binance.com/api/v3/ticker/24hr",
+        "https://api1.binance.com/api/v3/ticker/24hr",
+        "https://api2.binance.com/api/v3/ticker/24hr",
+        "https://api3.binance.com/api/v3/ticker/24hr"
+    ]
+    
     rows = []
     total_vol = 0
-    try:
-        # Binance V3 API - En stabil endpoint
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
-        if r.status_code == 200:
-            all_data = r.json()
-            # Sadece bizim istediğimiz varlıkları süzüyoruz
-            active_data = [d for d in all_data if d['symbol'] in assets]
-            
-            for item in active_data:
-                p = float(item['lastPrice'])
-                h = float(item['highPrice'])
-                l = float(item['lowPrice'])
-                v_1h = (float(item['quoteVolume']) / 1_000_000) / 24
-                total_vol += v_1h
-                
-                # Güç Analizi (%)
-                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
-                guc = max(min(guc, 99), 1)
+    data = None
 
-                if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE / PEAK: Take Profit"
-                elif guc < 15: d, e = "💰 BUY", "🔥 DİP / BOTTOM: Accumulate"
-                elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSU / AMBUSH: Wait"
-                else: d, e = "📈 FOLLOW", "💎 TREND / WATCHING"
-                
-                rows.append({
-                    "SDR SİNYAL": d, "VARLIK / ASSET": item['symbol'].replace("USDT", ""),
-                    "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v_1h:,.2f} M",
-                    "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": e
-                })
-        return pd.DataFrame(rows), total_vol
-    except Exception as e:
-        st.error(f"Bağlantı Hatası / Connection Error: {e}")
-        return pd.DataFrame(), 0
+    # Sunucuları sırayla dene
+    for url in endpoints:
+        try:
+            r = requests.get(url, timeout=5)
+            if r.status_code == 200:
+                data = r.json()
+                break # Veri geldiyse döngüden çık
+        except:
+            continue
+
+    if data:
+        active_data = [d for d in data if d['symbol'] in assets]
+        for item in active_data:
+            p = float(item['lastPrice'])
+            h = float(item['highPrice'])
+            l = float(item['lowPrice'])
+            v_1h = (float(item['quoteVolume']) / 1_000_000) / 24
+            total_vol += v_1h
+            
+            guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
+            guc = max(min(guc, 99), 1)
+
+            if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE / PEAK: Take Profit"
+            elif guc < 15: d, e = "💰 BUY", "🔥 DİP / BOTTOM: Accumulate"
+            else: d, e = "📈 FOLLOW", "💎 TREND / WATCHING"
+            
+            rows.append({
+                "SDR SİNYAL": d, "VARLIK / ASSET": item['symbol'].replace("USDT", ""),
+                "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v_1h:,.2f} M",
+                "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": e
+            })
+    
+    return pd.DataFrame(rows), total_vol
 
 # --- 5. ÜST PANEL ---
 su_an_utc = datetime.utcnow()
@@ -94,7 +103,7 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 6. VERİYİ ÇEK VE BAS ---
+# --- 6. TABLO VE GRAFİK ---
 df, t_vol = get_live_data()
 
 if not df.empty:
@@ -104,32 +113,24 @@ if not df.empty:
     m3.metric("📊 TOTAL VOLUME (1H)", f"${t_vol:,.2f} M")
 
     st.write("---")
-
-    # ANA TABLO
     st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
         'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
     }), use_container_width=True, hide_index=True, height=650)
 
     st.write("---")
-
-    # GRAFİK
-    fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues', title="GLOBAL POWER ANALYSIS (%)")
+    fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
+else:
+    st.error("🚨 BINANCE BAĞLANTISI KESİLDİ! / BINANCE CONNECTION LOST!")
+    st.info("Lütfen birkaç saniye bekleyin, sistem otomatik olarak yedek sunuculara bağlanacaktır.")
 
 # --- 7. ALT KUTULAR ---
+st.write("---")
 c1, c2 = st.columns(2)
 with c1:
-    st.markdown("""<div class="info-box" style="border-left: 10px solid #ff4b4b;">
-        <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR.</b> Veriler Binance API'den gelir.</p>
-        <p><i><b>NOT INVESTMENT ADVICE.</b> Data from Binance API.</i></p>
-    </div>""", unsafe_allow_html=True)
+    st.markdown('<div class="info-box"><b>⚠️ YASAL UYARI / LEGAL NOTICE</b><br>Not investment advice. Veriler Binance üzerinden gelir.</div>', unsafe_allow_html=True)
 with c2:
-    st.markdown("""<div class="info-box" style="border-left: 10px solid #FFD700;">
-        <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
-        <p><b>%88+ POWER:</b> Kar Al. <b>%15- POWER:</b> Toplama.</p>
-        <p><i>System updates every 15 seconds.</i></p>
-    </div>""", unsafe_allow_html=True)
+    st.markdown('<div class="info-box"><b>🛡️ SDR STRATEJİ / STRATEGY</b><br>Updates every 15s. %88+ Peak, %15- Bottom.</div>', unsafe_allow_html=True)
 
-st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR SADRETTİN TURAN • OFFICIAL BINANCE DATA</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR SADRETTİN TURAN</p>", unsafe_allow_html=True)
