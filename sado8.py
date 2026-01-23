@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.0", layout="wide")
-st_autorefresh(interval=10 * 1000, key="sdr_stable_v60")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.1", layout="wide")
+st_autorefresh(interval=10 * 1000, key="sdr_professional_v61")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
@@ -60,9 +60,10 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
+# Serseri gitti, Sadrettin Turan markası geldi!
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (KUSURSUZ HİZALANDI) ---
+# --- 4. VERİ MOTORU ---
 def get_sdr_data():
     assets = "BTC,ETH,SOL,AVAX,XRP,BNB,ADA,DOGE,LINK,SUI,PEPE,FET,RENDER,MATIC"
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD"
@@ -88,7 +89,6 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-# --- TABLO RENK SİSTEMİ (SİYAH FON GARANTİLİ) ---
 def style_table(styler):
     styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
     def color_analysis(val):
@@ -116,11 +116,11 @@ if not df.empty:
         fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
         st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.info("📡 SDR Data Stream Re-connecting...")
+    st.info("📡 SDR Data Hub Syncing...")
 
 # --- 5. BİLGİLENDİRME ---
 st.write("---")
-st.markdown('<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR SADRETTIN TURAN</p>', unsafe_allow_html=True)
+st.markdown(f'<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR {datetime.now().year} EXCLUSIVE ACCESS</p>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
 with c1:
     st.markdown("""<div class="info-box" style="border-left: 15px solid #ff4b4b;">
@@ -132,9 +132,9 @@ with c1:
 with c2:
     st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
         <h3 style='color:#00f2ff;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
-        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini 10 saniyede bir analiz eder.</p>
+        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz eder. 3 günlük deneme süresi için Sado Bey ile iletişime geçin.</p>
         <hr style='border: 0.1px solid #333;'>
-        <p><i><b>[EN]:</b> SDR model analyzes <b>Binance Global</b> data every 10 seconds.</i></p>
+        <p><i><b>[EN]:</b> SDR model analyzes <b>Binance Global</b> data. Contact for 3-day trial access.</i></p>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
