@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.3", layout="wide")
-st_autorefresh(interval=10 * 1000, key="sdr_clean_v63")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.4", layout="wide")
+st_autorefresh(interval=10 * 1000, key="sdr_refined_v64")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
@@ -29,10 +29,6 @@ st.markdown("""
         font-weight: bold; text-shadow: 0px 0px 10px #FFD700;
     }
     div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; background-color: black !important; }
-    .info-box { 
-        background: #080808; border: 2px solid #00f2ff; 
-        padding: 25px; border-radius: 15px; color: white; 
-    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -75,7 +71,7 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-# --- 5. ANA TABLO (EN ÜSTTE VE TEMİZ) ---
+# --- 5. ANA TABLO STİLİ ---
 def style_table(styler):
     styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
     def color_analysis(val):
@@ -87,4 +83,40 @@ def style_table(styler):
     return styler
 
 if not df.empty:
-    styled_df = df.style.
+    # Hatalı olan kısım burasıydı, şimdi kusursuz:
+    styled_df = df.style.pipe(style_table).format({
+        "PRICE": "{:,.2f} $", 
+        "24H %": "% {:,.2f}", 
+        "SDR POWER %": "% {}"
+    })
+    st.dataframe(styled_df, use_container_width=True, hide_index=True, height=450)
+
+    st.write("---")
+    
+    # --- 6. ALT ANALİZ PANELİ (ÜÇLÜ) ---
+    c1, c2, c3 = st.columns(3)
+    
+    with c1:
+        fig1 = go.Figure(go.Bar(x=df['ASSET'], y=df['24H %'], marker_color='#00f2ff'))
+        fig1.update_layout(title="Market Momentum (%)", template="plotly_dark", height=300, plot_bgcolor='black', paper_bgcolor='black', margin=dict(l=10, r=10, t=40, b=10))
+        st.plotly_chart(fig1, use_container_width=True)
+        
+    with c2:
+        avg_p = df['SDR POWER %'].mean()
+        fig_g = go.Figure(go.Indicator(
+            mode = "gauge+number", value = avg_p,
+            gauge = {'axis': {'range': [0, 100], 'tickcolor': "white"}, 'bar': {'color': "#00f2ff"}, 'bgcolor': "black",
+                     'steps': [{'range': [0, 20], 'color': "rgba(0, 255, 0, 0.3)"}, {'range': [80, 100], 'color': "rgba(255, 0, 0, 0.3)"}]},
+            title = {'text': "MARKET POWER RADAR", 'font': {'size': 16, 'color': '#00f2ff'}}
+        ))
+        fig_g.update_layout(paper_bgcolor='black', height=300, font={'color': "white"}, margin=dict(l=10, r=10, t=40, b=10))
+        st.plotly_chart(fig_g, use_container_width=True)
+        
+    with c3:
+        fig2 = go.Figure(go.Scatter(x=df['ASSET'], y=df['SDR POWER %'], mode='lines+markers', line=dict(color='#FFD700', width=2)))
+        fig2.update_layout(title="SDR Power Index", template="plotly_dark", height=300, plot_bgcolor='black', paper_bgcolor='black', margin=dict(l=10, r=10, t=40, b=10))
+        st.plotly_chart(fig2, use_container_width=True)
+
+# --- 7. FOOTER ---
+st.write("---")
+st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.5;'>© 2026 SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
