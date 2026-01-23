@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.6", layout="wide")
-st_autorefresh(interval=10 * 1000, key="sdr_final_stable_v66")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.8", layout="wide")
+st_autorefresh(interval=10 * 1000, key="sdr_vizyon_v68")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
@@ -30,38 +30,33 @@ st.markdown("""
     }
     div[data-testid="stDataFrame"] { border: 2px solid #00f2ff !important; background-color: black !important; }
     .info-box { 
-        background: #080808; border: 2px solid #00f2ff; 
-        padding: 25px; border-radius: 15px; color: white; min-height: 150px;
+        background: #080808; border: 1px solid #333; 
+        padding: 25px; border-radius: 10px; color: white; min-height: 220px;
     }
+    .vizyon-header { color: #00f2ff; font-weight: bold; border-bottom: 1px solid #00f2ff; margin-bottom: 10px; padding-bottom: 5px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. ÜST BAR (UTC & TR) ---
+# --- 3. ÜST BAR ---
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>📡 BINANCE LIVE STREAM</div>
+        <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED</div>
         <div style='color:white; font-family:monospace; font-size:14px;'>
-            📅 {tr_now.strftime("%d.%m.%Y")} | 
-            🌐 <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
-            🇹🇷 <b>TR:</b> {tr_now.strftime("%H:%M:%S")}
+            📅 {tr_now.strftime("%d.%m.%Y")} | 🌐 UTC: {utc_now.strftime("%H:%M:%S")} | 🇹🇷 TR: {tr_now.strftime("%H:%M:%S")}
         </div>
-        <div style='color:#00f2ff; font-weight:bold;'>SADRETTİN TURAN EDITION</div>
+        <div style='color:#00f2ff; font-weight:bold;'>SADRETTİN TURAN EXECUTIVE</div>
     </div>
     """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (30 COIN) ---
+# --- 4. VERİ MOTORU ---
 def get_sdr_data():
-    coins = [
-        "BTC","ETH","BNB","SOL","XRP","ADA","DOGE","AVAX","TRX","DOT",
-        "LINK","MATIC","NEAR","LTC","BCH","UNI","SHIB","SUI","PEPE","FET",
-        "RENDER","APT","STX","FIL","ARB","TIA","OP","INJ","KAS","LDO"
-    ]
+    coins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","AVAX","TRX","DOT","LINK","MATIC","NEAR","LTC","BCH","UNI","SHIB","SUI","PEPE","FET","RENDER","APT","STX","FIL","ARB","TIA","OP","INJ","KAS","LDO"]
     assets = ",".join(coins)
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD"
     rows = []
@@ -72,70 +67,44 @@ def get_sdr_data():
             p, h, l, c = i['PRICE'], i['HIGH24HOUR'], i['LOW24HOUR'], i['CHANGEPCT24HOUR']
             guc = int(((p - l) / (h - l)) * 100) if (h-l) != 0 else 50
             guc = max(min(guc, 99), 1)
-            
             if guc > 85: ana, sig = "🛡️ ZİRVE: Kâr Al / TAKE PROFIT", "🔴 SELL"
             elif guc < 20: ana, sig = "💰 DİP: Kademeli Al / ACCUMULATE", "🟢 BUY"
             else: ana, sig = "📈 TREND TAKİBİ: Bekle / HOLDING", "🥷 WAIT"
-
-            rows.append({
-                "STATUS": sig, "ASSET": coin, "PRICE": p, 
-                "24H %": c, "SDR POWER %": guc, "SDR VIP ANALYSIS": ana
-            })
+            rows.append({"STATUS": sig, "ASSET": coin, "PRICE": p, "24H %": c, "SDR POWER %": guc, "SDR VIP ANALYSIS": ana})
     except: return pd.DataFrame()
     return pd.DataFrame(rows)
 
 df = get_sdr_data()
 
-# --- 5. ANA TABLO ---
-def style_table(styler):
-    styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
-    def color_analysis(val):
-        if "ZİRVE" in val: color = '#FF4B4B'
-        elif "DİP" in val: color = '#00FF00'
-        else: color = '#FFD700'
-        return f'color: {color}; background-color: black; font-weight: bold;'
-    styler.map(color_analysis, subset=['SDR VIP ANALYSIS'])
-    return styler
-
+# --- 5. TABLO ---
 if not df.empty:
-    styled_df = df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"})
-    st.dataframe(styled_df, use_container_width=True, hide_index=True, height=500)
-
-    st.write("---")
+    def style_table(styler):
+        styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
+        styler.map(lambda v: f"color: {'#FF4B4B' if 'ZİRVE' in v else '#00FF00' if 'DİP' in v else '#FFD700'}; background-color: black; font-weight: bold;", subset=['SDR VIP ANALYSIS'])
+        return styler
     
-    # --- 6. ALT ANALİZ PANELİ ---
-    c1, c2, c3 = st.columns(3)
-    with c1:
-        fig1 = go.Figure(go.Bar(x=df['ASSET'][:15], y=df['24H %'][:15], marker_color='#00f2ff'))
-        fig1.update_layout(title="Top 15 Momentum", template="plotly_dark", height=300, plot_bgcolor='black', paper_bgcolor='black', margin=dict(t=40, b=10))
-        st.plotly_chart(fig1, use_container_width=True)
-    with c2:
-        avg_p = df['SDR POWER %'].mean()
-        fig_g = go.Figure(go.Indicator(
-            mode = "gauge+number", value = avg_p,
-            gauge = {'axis': {'range': [0, 100]}, 'bar': {'color': "#00f2ff"}, 'bgcolor': "black",
-                     'steps': [{'range': [0, 20], 'color': "rgba(0, 255, 0, 0.2)"}, {'range': [80, 100], 'color': "rgba(255, 0, 0, 0.2)"}]},
-            title = {'text': "MARKET POWER RADAR", 'font': {'size': 16, 'color': '#00f2ff'}}
-        ))
-        fig_g.update_layout(paper_bgcolor='black', height=300, font={'color': "white"}, margin=dict(t=40, b=10))
-        st.plotly_chart(fig_g, use_container_width=True)
-    with c3:
-        fig2 = go.Figure(go.Scatter(x=df['ASSET'][:15], y=df['SDR POWER %'][:15], mode='lines+markers', line=dict(color='#FFD700', width=2)))
-        fig2.update_layout(title="Top 15 Power Index", template="plotly_dark", height=300, plot_bgcolor='black', paper_bgcolor='black', margin=dict(t=40, b=10))
-        st.plotly_chart(fig2, use_container_width=True)
+    st.dataframe(df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"}), use_container_width=True, hide_index=True, height=500)
 
-# --- 7. BİLGİLENDİRME KUTULARI (HATA DÜZELTİLDİ) ---
 st.write("---")
+
+# --- 6. VİZYONER BİLGİLENDİRME (TR/EN) ---
 inf1, inf2 = st.columns(2)
 with inf1:
-    st.markdown("""<div class="info-box" style="border-left: 10px solid #ff4b4b;">
-        <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p style='font-size:14px;'>Bu terminal Sadrettin Turan tarafından özel olarak geliştirilmiş algoritmik bir takip aracıdır. Sunulan veriler yatırım tavsiyesi değildir.</p>
-    </div>""", unsafe_allow_html=True)
-with inf2:
-    st.markdown("""<div class="info-box" style="border-left: 10px solid #00f2ff;">
-        <h3 style='color:#00f2ff; margin-top:0;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
-        <p style='font-size:14px;'>SDR Algoritması, Binance Global verilerini kullanarak anlık likidite analizi yapar. Sistem 10 saniyede bir güncellenir.</p>
+    st.markdown("""<div class="info-box" style="border-top: 4px solid #ff4b4b;">
+        <div class="vizyon-header">⚠️ YASAL UYARI & LEGAL DISCLAIMER</div>
+        <p style='font-size:13px; color:#ccc;'>
+        <b>[TR]:</b> Bu terminal, algoritmik verileri görselleştiren profesyonel bir takip aracıdır. Burada yer alan hiçbir analiz, grafik veya sinyal 6362 sayılı Sermaye Piyasası Kanunu kapsamında yatırım tavsiyesi değildir.<br><br>
+        <b>[EN]:</b> This terminal is a professional tracking tool for algorithmic data visualization. No analysis, chart, or signal provided herein constitutes financial advice under global regulatory standards.
+        </p>
     </div>""", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.5; margin-top:30px;'>© 2026 SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL • V6.6</p>", unsafe_allow_html=True)
+with inf2:
+    st.markdown("""<div class="info-box" style="border-top: 4px solid #00f2ff;">
+        <div class="vizyon-header">🛡️ STRATEJİK VİZYON & METHODOLOGY</div>
+        <p style='font-size:13px; color:#ccc;'>
+        <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; piyasa likiditesini, balina hareketlerini ve fiyat sapmalarını Binance Global verileriyle saniyeler içinde analiz eder. Amacımız, gürültüden arınmış, saf piyasa gücünü Sadrettin Turan standartlarında sunmaktır.<br><br>
+        <b>[EN]:</b> THE SDR PRESTIGE METHODOLOGY analyzes market liquidity, whale activity, and price deviations via Binance Global data. Our mission is to deliver noise-free, pure market power through Sadrettin Turan's executive standards.
+        </p>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px; font-family:monospace;'>SADRETTİN TURAN EXCLUSIVE GLOBAL TERMINAL • EST. 2026 • ALL RIGHTS RESERVED</p>", unsafe_allow_html=True)
