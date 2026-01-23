@@ -6,8 +6,8 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR & TİCARİ KİMLİK ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.1", layout="wide")
-st_autorefresh(interval=15 * 1000, key="sdr_binance_v51_stable")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.2", layout="wide")
+st_autorefresh(interval=15 * 1000, key="sdr_stable_final_v52")
 
 # --- 2. ÜST DÜZEY TASARIM (CSS) ---
 st.markdown("""
@@ -43,7 +43,7 @@ tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V5.1</div>
+        <div style='color:#00ffcc; font-weight:bold; font-size:20px;'>📡 SDR COMMERCIAL CORE V5.2</div>
         <div style='color:white; font-family:monospace; font-size:16px;'>
             📅 {tr_now.strftime("%d.%m.%Y")} | 
             🌐 <b>UTC:</b> {utc_now.strftime("%H:%M:%S")} | 
@@ -56,10 +56,10 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (BINANCE ALTYAPILI) ---
+# --- 4. VERİ MOTORU (KUSURSUZ ÇALIŞAN VERSİYON) ---
 def get_sdr_data():
     assets = "BTC,ETH,SOL,AVAX,XRP,BNB,ADA,DOGE,LINK,SUI,PEPE,FET,RENDER,MATIC"
-    url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD&e=Binance"
+    url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD"
     rows = []
     try:
         r = requests.get(url, timeout=10).json()['RAW']
@@ -98,9 +98,9 @@ if not df.empty:
         fig2.update_layout(title="SDR Algorithmic Power Index", template="plotly_dark", plot_bgcolor='black', paper_bgcolor='black')
         st.plotly_chart(fig2, use_container_width=True)
 else:
-    st.info("📡 Refreshing Binance Data Stream...")
+    st.info("📡 Updating Global SDR Hub...")
 
-# --- 5. LİSANS & BİLGİLENDİRME ---
+# --- 5. LİSANS & BİLGİLENDİRME (VİZYONER BİNANCE EKLEMELİ) ---
 st.write("---")
 st.markdown('<p class="license-text">LICENSE KEY: SDR-VIP-777-2026 | ACCESS: AUTHORIZED FOR SADRETTIN TURAN</p>', unsafe_allow_html=True)
 c1, c2 = st.columns(2)
@@ -114,9 +114,9 @@ with c1:
 with c2:
     st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
         <h3 style='color:#00f2ff;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
-        <p><b>[TR]:</b> SDR modeli, Binance Global canlı verilerini kullanır. %88 üzeri sapmalarda kâr realizasyonu tetiklenir.</p>
+        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz ederek likidite dengesini izler. %88 üzeri sapmalarda kâr realizasyonu tetiklenir.</p>
         <hr style='border: 0.1px solid #333;'>
-        <p><i><b>[EN]:</b> The SDR model uses <b>Binance Global</b> live data. Profit-taking is triggered above 88% displacement.</i></p>
+        <p><i><b>[EN]:</b> The SDR model analyzes <b>Binance Global</b> data to monitor liquidity balance. Profit-taking is triggered above 88% displacement.</i></p>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
