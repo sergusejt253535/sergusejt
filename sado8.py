@@ -63,6 +63,7 @@ def get_live_data():
             })
         return pd.DataFrame(rows), total_vol
     except:
+        # Hata durumunda boş değil, SDR'ye yakışır şekilde bekleme mesajı döndürür
         return pd.DataFrame(), 0
 
 # --- 5. ÜST PANEL ---
@@ -95,7 +96,7 @@ st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsaf
 
 df, t_vol = get_live_data()
 
-# --- 6. TABLO VE GRAFİK ---
+# --- 6. METRİKLER, TABLO VE GRAFİK ---
 if not df.empty:
     m1, m2, m3 = st.columns([1,1,2])
     m1.metric("💰 BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
@@ -104,7 +105,7 @@ if not df.empty:
     
     st.write("---")
     
-    # ANA TABLO
+    # ANA TABLO - GÖRÜNMEYEN KISIM BURASIYDI, ŞİMDİ ZORLA BASIYORUZ
     st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
         'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
     }), use_container_width=True, hide_index=True, height=650)
@@ -115,6 +116,8 @@ if not df.empty:
     fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues', title="GLOBAL POWER ANALYSIS (%)")
     fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
     st.plotly_chart(fig, use_container_width=True)
+else:
+    st.warning("🔄 BINANCE VERİSİ YÜKLENİYOR / LOADING DATA...")
 
 # --- 7. ALT KUTULAR (TR/EN) ---
 c1, c2 = st.columns(2)
