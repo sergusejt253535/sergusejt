@@ -1,15 +1,17 @@
 import streamlit as st
 import pandas as pd
-import ccxt
+import requests
 from datetime import datetime, timedelta
 import plotly.express as px
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
-st_autorefresh(interval=20 * 1000, key="sdr_brute_force")
 
-# --- 2. CSS TASARIM ---
+# Veriyi her 15 saniyede bir otomatik tazeler
+st_autorefresh(interval=15 * 1000, key="sdr_standard_engine")
+
+# --- 2. GÖRSEL TASARIM (CSS) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
@@ -22,29 +24,32 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 3. VERİ MOTORU (CCXT BRUTE FORCE) ---
-def get_live_data_ccxt():
-    assets = ['BTC/USDT', 'ETH/USDT', 'SOL/USDT', 'AVAX/USDT', 'XRP/USDT', 'BNB/USDT', 'ADA/USDT', 'DOGE/USDT', 'DOT/USDT', 'LINK/USDT', 'MATIC/USDT', 'TRX/USDT', 'UNI/USDT', 'BCH/USDT', 'SUI/USDT', 'FET/USDT', 'RENDER/USDT', 'PEPE/USDT', 'SHIB/USDT']
+# --- 3. VERİ ÇEKME MOTORU ---
+def get_live_data():
+    assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     rows = []
     
     try:
-        # CCXT ile Binance'e sızıyoruz
-        exchange = ccxt.binance({
-            'enableRateLimit': True,
-            'options': {'defaultType': 'spot'}
-        })
-        tickers = exchange.fetch_tickers(assets)
+        # Binance ana sunucusundan veri çekimi
+        url = "https://api.binance.com/api/v3/ticker/24hr"
+        r = requests.get(url, timeout=10)
+        data = r.json()
         
-        for symbol, item in tickers.items():
-            p = float(item['last'])
-            h = float(item['high'])
-            l = float(item['low'])
-            v = (float(item['quoteVolume']) / 1_000_000) / 24
+        # Sadece listedeki coinleri ayıkla
+        active_data = [d for d in data if d['symbol'] in assets]
+        
+        for item in active_data:
+            p = float(item['lastPrice'])
+            h = float(item['highPrice'])
+            l = float(item['lowPrice'])
+            v = (float(item['quoteVolume']) / 1_000_000) / 24 # 1 Saatlik ortalama hacim tahmini
             
+            # SDR Güç Analizi
             diff = h - l
             guc = int(((p - l) / diff) * 100) if diff != 0 else 50
             guc = max(min(guc, 99), 1)
             
+            # Sinyal ve Analiz Mantığı
             if guc > 88: 
                 sig, ana = "🛡️ SELL", "🚨 ZİRVE: Kâr Al & Nakde Geç / PEAK: Take Profit & Exit"
             elif guc < 15: 
@@ -55,28 +60,24 @@ def get_live_data_ccxt():
                 sig, ana = "📈 FOLLOW", "💎 TREND: Takip Et / TREND: Keep Following"
             
             rows.append({
-                "SDR SİNYAL": sig, "VARLIK / ASSET": symbol.replace("/USDT", ""),
+                "SDR SİNYAL": sig, "VARLIK / ASSET": item['symbol'].replace("USDT", ""),
                 "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v:,.2f} M",
                 "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": ana
             })
-    except Exception as e:
-        # Eğer CCXT bile patlarsa tablo boş kalmasın diye "Dummy" veri bas
+    except:
+        # Bağlantı koparsa tablo yapısı bozulmasın diye boş satırlar
         for sym in assets:
-            rows.append({
-                "SDR SİNYAL": "⚠️ ERROR", "VARLIK / ASSET": sym.replace("/USDT", ""),
-                "FİYAT / PRICE": "RECONNECTING", "HACİM / VOL (1H)": "---", 
-                "GÜÇ / POWER (%)": "%50", "POWER_NUM": 50, "ANALİZ / ANALYSIS": "SİSTEM BAĞLANTIYI ZORLUYOR / SYSTEM FORCING CONNECTION"
-            })
+            rows.append({"SDR SİNYAL": "🔄 CONNECTING", "VARLIK / ASSET": sym.replace("USDT", ""), "FİYAT / PRICE": "---", "HACİM / VOL (1H)": "---", "GÜÇ / POWER (%)": "---", "POWER_NUM": 0, "ANALİZ / ANALYSIS": "BAĞLANTI BEKLENİYOR / WAITING CONNECTION"})
     
     return pd.DataFrame(rows)
 
-# --- 4. PANEL ---
+# --- 4. PANEL GÖVDESİ ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>📡 SDR GLOBAL CORE ENGINE</div>
+        <div style='color:#00ffcc; font-weight:bold;'>OFFICIAL BINANCE DATA FEED</div>
         <div style='color:white;'>📅 {su_an_tr.strftime("%d.%m.%Y")} | 🇹🇷 TR: {su_an_tr.strftime("%H:%M:%S")}</div>
         <div style='color:#FFD700; font-weight:bold;'>SDR PRESTIGE</div>
     </div>
@@ -85,35 +86,36 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-df = get_live_data_ccxt()
+df = get_live_data()
 
 # ANA TABLO
 st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
     'background-color': '#000000', 'color': '#FFD700', 'font-weight': 'bold'
 }), use_container_width=True, hide_index=True, height=600)
 
-# GRAFİK
+# GRAFİK BÖLÜMÜ
 st.write("---")
 fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
 fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
 st.plotly_chart(fig, use_container_width=True)
 
-# --- 5. DETAYLI ALT KUTULAR ---
+# --- 5. BİLGİ KUTULARI (UZUN VE DETAYLI) ---
+st.write("---")
 c1, c2 = st.columns(2)
 with c1:
     st.markdown("""<div class="info-box" style="border-left: 12px solid #ff4b4b;">
         <h3 style='color:#ff4b4b;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p><b>[TR]:</b> Bu panelde sunulan veriler sadece bilgilendirme amaçlıdır. Yatırım danışmanlığı kapsamında değildir. Kripto paralar yüksek risk içerir, tüm karar ve sorumluluk kullanıcıya aittir.</p>
+        <p><b>[TR]:</b> Bu panelde sunulan tüm veriler, analizler ve sinyaller sadece bilgilendirme amaçlıdır. Hiçbir şekilde yatırım danışmanlığı teşkil etmez. Kripto varlık piyasaları yüksek derecede oynaklık ve risk taşır; bu nedenle yatırımlarınızda oluşabilecek herhangi bir maddi zarardan SDR Prestige Global veya sistem sorumlu tutulamaz. Karar vermeden önce kendi araştırmanızı yapmanız önerilir.</p>
         <hr style='border:0.1px solid #333'>
-        <p><i><b>[EN]:</b> The data presented here is for informational purposes only. It is not investment advice. Cryptocurrencies involve high risk; all decisions and responsibilities belong to the user.</i></p>
+        <p><i><b>[EN]:</b> All data, analysis, and signals presented on this panel are for informational purposes only. It does not constitute investment advice. Cryptocurrency markets carry high volatility and risk; therefore, SDR Prestige Global or the system cannot be held responsible for any financial losses. It is recommended to conduct your own research before making decisions.</i></p>
     </div>""", unsafe_allow_html=True)
 
 with c2:
     st.markdown("""<div class="info-box" style="border-left: 12px solid #FFD700;">
         <h3 style='color:#FFD700;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
-        <p><b>[TR]:</b> Güç %88 üzerindeyse zirve noktasına yaklaşılmıştır, kâr alımı düşünülmelidir. %15 altı ise güvenli toplama bölgesidir. Sistem profesyonel CCXT kütüphanesi ile güncellenir.</p>
+        <p><b>[TR]:</b> Sistem, varlığın son 24 saatteki en düşük ve en yüksek seviyelerine göre güncel fiyatın konumunu ölçer. Güç (POWER) %88 üzerindeyse, varlık zirve noktasına yakındır ve kâr realizasyonu düşünülmelidir. %15'in altındaki seviyeler ise 'aşırı satış' bölgesini işaret eder ve kademeli toplama için fırsat olabilir. Veriler 15 saniyede bir güncellenir.</p>
         <hr style='border:0.1px solid #333'>
-        <p><i><b>[EN]:</b> If power is above 88%, the peak is near and profit-taking should be considered. Below 15% is the safe accumulation zone. System updates via professional CCXT library.</i></p>
+        <p><i><b>[EN]:</b> The system measures the position of the current price based on the last 24-hour low and high. If POWER is above 88%, the asset is near its peak, and profit-taking should be considered. Levels below 15% indicate an 'oversold' zone and potential accumulation opportunity. Data updates every 15 seconds.</i></p>
     </div>""", unsafe_allow_html=True)
 
-st.markdown("<br><p style='text-align:center; opacity: 0.6; color:#FFD700;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; opacity: 0.6; color:#FFD700;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
