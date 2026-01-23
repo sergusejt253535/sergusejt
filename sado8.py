@@ -5,9 +5,9 @@ import plotly.graph_objects as go
 from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR (10 SN HIZ) ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.7", layout="wide")
-st_autorefresh(interval=10 * 1000, key="sdr_dark_vip_v57")
+# --- 1. AYARLAR ---
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.5.8", layout="wide")
+st_autorefresh(interval=10 * 1000, key="sdr_balanced_v58")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
@@ -62,7 +62,7 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU ---
+# --- 4. VERİ MOTORU (DENGELİ ANALİZ) ---
 def get_sdr_data():
     assets = "BTC,ETH,SOL,AVAX,XRP,BNB,ADA,DOGE,LINK,SUI,PEPE,FET,RENDER,MATIC"
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD"
@@ -75,8 +75,9 @@ def get_sdr_data():
             guc = int(((p - l) / (h - l)) * 100) if (h-l) != 0 else 50
             guc = max(min(guc, 99), 1)
             
-            if guc > 88: ana, sig = "🛡️ ZİRVE: Kâr Al / PEAK: Take Profit", "🔴 SELL"
-            elif guc < 15: ana, sig = "💰 DİP: Kademeli Al / BOTTOM: Accumulate", "🟢 BUY"
+            # Hassas sinyal dengesi
+            if guc > 85: ana, sig = "🛡️ ZİRVE: Kâr Al / PEAK: Take Profit", "🔴 SELL"
+            elif guc < 20: ana, sig = "💰 DİP: Kademeli Al / BOTTOM: Accumulate", "🟢 BUY"
             else: ana, sig = "📈 TREND TAKİBİ: Bekle / TREND WATCH: Wait", "🥷 WAIT"
 
             rows.append({
@@ -88,11 +89,11 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-# Analiz Sütunu Renk ve Fon Sabitleme
+# Analiz Sütunu Akıllı Renklendirme
 def apply_analysis_styles(val):
-    if "ZİRVE" in val: color = '#FF4B4B'
-    elif "DİP" in val: color = '#00FF00'
-    else: color = '#FFD700'
+    if "ZİRVE" in val: color = '#FF4B4B'  # Kırmızı
+    elif "DİP" in val: color = '#00FF00'   # Yeşil
+    else: color = '#FFD700'                # Altın Sarısı
     return f'color: {color}; font-weight: bold; background-color: #000 !important;'
 
 if not df.empty:
@@ -133,9 +134,9 @@ with c1:
 with c2:
     st.markdown("""<div class="info-box" style="border-left: 15px solid #00f2ff;">
         <h3 style='color:#00f2ff;'>🛡️ SDR METODOLOJİ / METHODOLOGY</h3>
-        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz eder. 10 saniyede bir güncellenir.</p>
+        <p><b>[TR]:</b> SDR modeli, <b>Binance Global</b> verilerini analiz eder. Bekleme sinyalleri piyasa dengesini temsil eder.</p>
         <hr style='border: 0.1px solid #333;'>
-        <p><i><b>[EN]:</b> SDR model analyzes <b>Binance Global</b> data every 10 seconds.</i></p>
+        <p><i><b>[EN]:</b> SDR model analyzes <b>Binance Global</b> data. Wait signals represent market balance.</i></p>
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; opacity: 0.5; color:#00f2ff;'>© 2026 SDR SADRETTİN TURAN • PRESTIGE GLOBAL TERMINAL</p>", unsafe_allow_html=True)
