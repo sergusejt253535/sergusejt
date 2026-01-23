@@ -27,46 +27,44 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (KESİNTİSİZ) ---
+# --- 4. VERİ MOTORU (KESİN VERİ AKIŞI) ---
 def get_live_data():
     assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
     rows = []
     total_vol = 0
-    active_data = []
-    
     try:
-        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=5)
+        # Binance V3 API - En stabil endpoint
+        r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
         if r.status_code == 200:
-            active_data = r.json()
-    except:
-        pass
-
-    for sym in assets:
-        item = next((i for i in active_data if i['symbol'] == sym), None)
-        if item:
-            p = float(item.get('lastPrice', 0))
-            h = float(item.get('highPrice', 0))
-            l = float(item.get('lowPrice', 0))
-            v_1h = (float(item.get('quoteVolume', 0)) / 1_000_000) / 24
-        else:
-            # API GECİKİRSE YEDEK RAKAMLAR (TABLO BOŞ KALMASIN DİYE)
-            p, h, l, v_1h = 0.0, 1.0, 0.0, 0.0
+            all_data = r.json()
+            # Sadece bizim istediğimiz varlıkları süzüyoruz
+            active_data = [d for d in all_data if d['symbol'] in assets]
             
-        total_vol += v_1h
-        guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
-        guc = max(min(guc, 99), 1)
+            for item in active_data:
+                p = float(item['lastPrice'])
+                h = float(item['highPrice'])
+                l = float(item['lowPrice'])
+                v_1h = (float(item['quoteVolume']) / 1_000_000) / 24
+                total_vol += v_1h
+                
+                # Güç Analizi (%)
+                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
+                guc = max(min(guc, 99), 1)
 
-        if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE / PEAK: Take Profit"
-        elif guc < 15: d, e = "💰 BUY", "🔥 DİP / BOTTOM: Accumulate"
-        elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSU / AMBUSH: Wait"
-        else: d, e = "📈 FOLLOW", "💎 TREND / WATCHING"
-        
-        rows.append({
-            "SDR SİNYAL": d, "VARLIK / ASSET": sym.replace("USDT", ""),
-            "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v_1h:,.2f} M",
-            "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": e
-        })
-    return pd.DataFrame(rows), total_vol
+                if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE / PEAK: Take Profit"
+                elif guc < 15: d, e = "💰 BUY", "🔥 DİP / BOTTOM: Accumulate"
+                elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSU / AMBUSH: Wait"
+                else: d, e = "📈 FOLLOW", "💎 TREND / WATCHING"
+                
+                rows.append({
+                    "SDR SİNYAL": d, "VARLIK / ASSET": item['symbol'].replace("USDT", ""),
+                    "FİYAT / PRICE": f"{p:,.2f} $", "HACİM / VOL (1H)": f"${v_1h:,.2f} M",
+                    "GÜÇ / POWER (%)": f"%{guc}", "POWER_NUM": guc, "ANALİZ / ANALYSIS": e
+                })
+        return pd.DataFrame(rows), total_vol
+    except Exception as e:
+        st.error(f"Bağlantı Hatası / Connection Error: {e}")
+        return pd.DataFrame(), 0
 
 # --- 5. ÜST PANEL ---
 su_an_utc = datetime.utcnow()
@@ -99,24 +97,25 @@ st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsaf
 # --- 6. VERİYİ ÇEK VE BAS ---
 df, t_vol = get_live_data()
 
-m1, m2, m3 = st.columns([1,1,2])
-m1.metric("💰 BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
-m2.metric("🛡️ SELL ZONE", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
-m3.metric("📊 TOTAL VOLUME (1H)", f"${t_vol:,.2f} M")
+if not df.empty:
+    m1, m2, m3 = st.columns([1,1,2])
+    m1.metric("💰 BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
+    m2.metric("🛡️ SELL ZONE", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
+    m3.metric("📊 TOTAL VOLUME (1H)", f"${t_vol:,.2f} M")
 
-st.write("---")
+    st.write("---")
 
-# ANA TABLO (ARIK GİZLENEMEZ)
-st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
-    'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
-}), use_container_width=True, hide_index=True, height=650)
+    # ANA TABLO
+    st.dataframe(df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "HACİM / VOL (1H)", "GÜÇ / POWER (%)", "ANALİZ / ANALYSIS"]].style.set_properties(**{
+        'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
+    }), use_container_width=True, hide_index=True, height=650)
 
-st.write("---")
+    st.write("---")
 
-# GRAFİK
-fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues', title="GLOBAL POWER ANALYSIS (%)")
-fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
-st.plotly_chart(fig, use_container_width=True)
+    # GRAFİK
+    fig = px.bar(df, x='VARLIK / ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues', title="GLOBAL POWER ANALYSIS (%)")
+    fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
+    st.plotly_chart(fig, use_container_width=True)
 
 # --- 7. ALT KUTULAR ---
 c1, c2 = st.columns(2)
