@@ -44,7 +44,7 @@ tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE SOURCE)</div>
+        <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE)</div>
         <div style='color:white; font-family:monospace; font-size:14px;'>
             📅 {tr_now.strftime("%d.%m.%Y")} | 🌐 UTC: {utc_now.strftime("%H:%M:%S")} | 🇹🇷 TR: {tr_now.strftime("%H:%M:%S")}
         </div>
@@ -77,27 +77,28 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-# --- 5. GRAFİK VE TABLO ---
+# --- 5. GRAFİK VE TABLO (YENİDEN DÜZENLENDİ) ---
 if not df.empty:
-    top_8 = df.sort_values("SDR POWER %", ascending=False).head(8)
+    # Grafiği biraz daha kibarlaştırdım ki tabloyu aşağı itmesin
+    top_5 = df.sort_values("SDR POWER %", ascending=False).head(5)
     fig = go.Figure(go.Bar(
-        x=top_8['ASSET'], y=top_8['SDR POWER %'],
-        marker_color='#00f2ff', text=top_8['SDR POWER %'], textposition='outside'
+        x=top_5['ASSET'], y=top_5['SDR POWER %'],
+        marker_color='#00f2ff', text=top_5['SDR POWER %'], textposition='auto'
     ))
     fig.update_layout(
-        title="SDR POWER INDEX - TOP ASSETS",
         paper_bgcolor='black', plot_bgcolor='black', font=dict(color='#00f2ff'),
-        height=300, margin=dict(l=20, r=20, t=50, b=20),
-        xaxis=dict(showgrid=False), yaxis=dict(showgrid=False, range=[0, 110])
+        height=200, margin=dict(l=10, r=10, t=10, b=10),
+        xaxis=dict(showgrid=False), yaxis=dict(showgrid=False, range=[0, 100])
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Senin o bozulmasını istemediğin meşhur tablo stilin
     def style_table(styler):
         styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
         styler.map(lambda v: f"color: {'#FF4B4B' if 'ZİRVE' in v else '#00FF00' if 'DİP' in v else '#FFD700'}; background-color: black; font-weight: bold;", subset=['SDR VIP ANALYSIS'])
         return styler
     
-    st.dataframe(df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"}), use_container_width=True, hide_index=True, height=500)
+    st.dataframe(df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"}), use_container_width=True, hide_index=True, height=600)
 
 st.write("---")
 
@@ -116,7 +117,7 @@ with inf2:
     st.markdown("""<div class="info-box" style="border-top: 4px solid #00f2ff;">
         <div class="vizyon-header">🛡️ STRATEJİK VİZYON & METHODOLOGY</div>
         <p style='font-size:13px; color:#ccc;'>
-        <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; Binance Global verileriyle saniyeler içinde analiz yapar. Saf piyasa gücünü Sadrettin Turan standartlarında sunar.<br><br>
+        <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; Binance Global verileriyle analiz yapar. Saf piyasa gücünü Sadrettin Turan standartlarında sunar.<br><br>
         <b>[EN]:</b> THE SDR PRESTIGE METHODOLOGY analyzes Binance Global data to deliver pure market power through Sadrettin Turan's standards.
         </p>
     </div>""", unsafe_allow_html=True)
