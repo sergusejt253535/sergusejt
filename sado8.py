@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import plotly.graph_objects as go
-from datetime iamport datetime, timedelta
+from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
@@ -108,4 +108,3 @@ with inf2:
     </div>""", unsafe_allow_html=True)
 
 st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px; font-family:monospace;'>SADRETTİN TURAN EXCLUSIVE GLOBAL TERMINAL • EST. 2026 • ALL RIGHTS RESERVED</p>", unsafe_allow_html=True)
-
