@@ -5,9 +5,9 @@ from datetime import datetime, timedelta
 from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.8", layout="wide")
-# Sadece hızı 15 saniyeye çektim
-st_autorefresh(interval=15 * 1000, key="sdr_vizyon_v68")
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.7.0", layout="wide")
+# Hızı tam 15 saniye yaptık
+st_autorefresh(interval=15 * 1000, key="sdr_vizyon_v7")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
 st.markdown("""
@@ -43,7 +43,7 @@ tr_now = utc_now + timedelta(hours=3)
 
 st.markdown(f"""
     <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE SOURCE)</div>
+        <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE)</div>
         <div style='color:white; font-family:monospace; font-size:14px;'>
             📅 {tr_now.strftime("%d.%m.%Y")} | 🌐 UTC: {utc_now.strftime("%H:%M:%S")} | 🇹🇷 TR: {tr_now.strftime("%H:%M:%S")}
         </div>
@@ -54,12 +54,13 @@ st.markdown(f"""
 st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU ---
+# --- 4. VERİ MOTORU (HAFIZA TEMİZLEME EKLENDİ) ---
+@st.cache_data(ttl=10) # Veriyi sadece 10 saniye sakla, sonra çöpe at ve yenisini çek!
 def get_sdr_data():
     coins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","AVAX","TRX","DOT","LINK","MATIC","NEAR","LTC","BCH","UNI","SHIB","SUI","PEPE","FET","RENDER","APT","STX","FIL","ARB","TIA","OP","INJ","KAS","LDO"]
     assets = ",".join(coins)
-    # Direkt Binance kaynağı eklendi
-    url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD&e=Binance"
+    # URL'ye zaman damgası ekledim ki her seferinde farklı bir istek sanıp taze veri versin
+    url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD&e=Binance&t={int(datetime.now().timestamp())}"
     rows = []
     try:
         r = requests.get(url, timeout=10).json()['RAW']
@@ -85,6 +86,7 @@ if not df.empty:
         return styler
     
     st.dataframe(df.style.pipe(style_table).format({"PRICE": "{:,.2f} $", "24H %": "% {:,.2f}", "SDR POWER %": "% {}"}), use_container_width=True, hide_index=True, height=600)
+    st.markdown(f"<p style='color:#00ffcc; font-size:12px; text-align:right;'>🕒 Son Veri Güncelleme (TR): {datetime.now().strftime('%H:%M:%S')}</p>", unsafe_allow_html=True)
 
 st.write("---")
 
@@ -103,7 +105,7 @@ with inf2:
     st.markdown("""<div class="info-box" style="border-top: 4px solid #00f2ff;">
         <div class="vizyon-header">🛡️ STRATEJİK VİZYON & METHODOLOGY</div>
         <p style='font-size:13px; color:#ccc;'>
-        <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; piyasa likiditesini ve fiyat sapmalarını Binance Global verileriyle saniyeler içinde analiz eder. Saf piyasa gücünü Sadrettin Turan standartlarında sunar.<br><br>
+        <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; Binance Global verileriyle analiz yapar. Saf piyasa gücünü Sadrettin Turan standartlarında sunar.<br><br>
         <b>[EN]:</b> THE SDR PRESTIGE METHODOLOGY analyzes Binance Global data to deliver pure market power through Sadrettin Turan's standards.
         </p>
     </div>""", unsafe_allow_html=True)
