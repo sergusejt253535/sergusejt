@@ -7,7 +7,7 @@ from streamlit_autorefresh import st_autorefresh
 
 # --- 1. AYARLAR ---
 st.set_page_config(page_title="SDR PRESTIGE GLOBAL | V.6.9", layout="wide")
-# Güncelleme hızı 15 saniyeye düşürüldü
+# Hızı 15 saniyeye çektim
 st_autorefresh(interval=15 * 1000, key="sdr_vizyon_v69")
 
 # --- 2. ÖZEL TASARIM (CSS) ---
@@ -42,6 +42,7 @@ st.markdown("""
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
+# Binance dipnotunu buraya ekledim
 st.markdown(f"""
     <div class="top-bar">
         <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE SOURCE)</div>
@@ -59,7 +60,7 @@ st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsaf
 def get_sdr_data():
     coins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","AVAX","TRX","DOT","LINK","MATIC","NEAR","LTC","BCH","UNI","SHIB","SUI","PEPE","FET","RENDER","APT","STX","FIL","ARB","TIA","OP","INJ","KAS","LDO"]
     assets = ",".join(coins)
-    # Binance verilerini Cryptocompare üzerinden çekiyoruz
+    # Direkt Binance'ten çekiyoruz
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD&e=Binance"
     rows = []
     try:
@@ -78,22 +79,23 @@ def get_sdr_data():
 
 df = get_sdr_data()
 
-# --- 5. TABLO VE GRAFİK ---
+# --- 5. GRAFİK VE TABLO ---
 if not df.empty:
-    # Grafik Bölümü (En Üstteki 5 Coin İçin Görsel Güç)
-    fig = go.Figure()
-    top_5 = df.head(5)
-    fig.add_trace(go.Bar(
-        x=top_5['ASSET'], y=top_5['SDR POWER %'],
-        marker_color='#00f2ff', text=top_5['SDR POWER %'], textposition='auto',
+    # Puzzle'a eklediğimiz grafik parçası
+    top_8 = df.sort_values("SDR POWER %", ascending=False).head(8)
+    fig = go.Figure(go.Bar(
+        x=top_8['ASSET'], y=top_8['SDR POWER %'],
+        marker_color='#00f2ff', text=top_8['SDR POWER %'], textposition='outside'
     ))
     fig.update_layout(
-        title="TOP ASSETS SDR POWER INDEX",
+        title="SDR POWER INDEX - TOP ASSETS",
         paper_bgcolor='black', plot_bgcolor='black', font=dict(color='#00f2ff'),
-        height=300, margin=dict(l=20, r=20, t=40, b=20)
+        height=300, margin=dict(l=20, r=20, t=50, b=20),
+        xaxis=dict(showgrid=False), yaxis=dict(showgrid=False, range=[0, 110])
     )
     st.plotly_chart(fig, use_container_width=True)
 
+    # Senin asıl tablon
     def style_table(styler):
         styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
         styler.map(lambda v: f"color: {'#FF4B4B' if 'ZİRVE' in v else '#00FF00' if 'DİP' in v else '#FFD700'}; background-color: black; font-weight: bold;", subset=['SDR VIP ANALYSIS'])
@@ -103,7 +105,7 @@ if not df.empty:
 
 st.write("---")
 
-# --- 6. VİZYONER BİLGİLENDİRME (TR/EN) ---
+# --- 6. VİZYONER BİLGİLENDİRME ---
 inf1, inf2 = st.columns(2)
 with inf1:
     st.markdown("""<div class="info-box" style="border-top: 4px solid #ff4b4b;">
@@ -119,8 +121,8 @@ with inf2:
         <div class="vizyon-header">🛡️ STRATEJİK VİZYON & METHODOLOGY</div>
         <p style='font-size:13px; color:#ccc;'>
         <b>[TR]:</b> SDR PRESTIGE METODOLOJİSİ; Binance Global verileriyle saniyeler içinde analiz yapar. Saf piyasa gücünü Sadrettin Turan standartlarında sunar.<br><br>
-        <b>[EN]:</b> THE SDR PRESTIGE METHODOLOGY analyzes Binance Global data. Delivering pure market power through Sadrettin Turan's standards.
+        <b>[EN]:</b> THE SDR PRESTIGE METHODOLOGY analyzes Binance Global data to deliver pure market power through Sadrettin Turan's standards.
         </p>
     </div>""", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px; font-family:monospace;'>SADRETTİN TURAN EXCLUSIVE GLOBAL TERMINAL • DATA SOURCE: BINANCE • EST. 2026</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px
