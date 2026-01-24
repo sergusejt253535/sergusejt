@@ -42,7 +42,6 @@ st.markdown("""
 utc_now = datetime.utcnow()
 tr_now = utc_now + timedelta(hours=3)
 
-# Binance dipnotunu buraya ekledim
 st.markdown(f"""
     <div class="top-bar">
         <div style='color:#00ffcc; font-weight:bold;'>📡 STRATEGIC LIVE FEED (BINANCE SOURCE)</div>
@@ -60,7 +59,6 @@ st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsaf
 def get_sdr_data():
     coins = ["BTC","ETH","BNB","SOL","XRP","ADA","DOGE","AVAX","TRX","DOT","LINK","MATIC","NEAR","LTC","BCH","UNI","SHIB","SUI","PEPE","FET","RENDER","APT","STX","FIL","ARB","TIA","OP","INJ","KAS","LDO"]
     assets = ",".join(coins)
-    # Direkt Binance'ten çekiyoruz
     url = f"https://min-api.cryptocompare.com/data/pricemultifull?fsyms={assets}&tsyms=USD&e=Binance"
     rows = []
     try:
@@ -81,7 +79,6 @@ df = get_sdr_data()
 
 # --- 5. GRAFİK VE TABLO ---
 if not df.empty:
-    # Puzzle'a eklediğimiz grafik parçası
     top_8 = df.sort_values("SDR POWER %", ascending=False).head(8)
     fig = go.Figure(go.Bar(
         x=top_8['ASSET'], y=top_8['SDR POWER %'],
@@ -95,7 +92,6 @@ if not df.empty:
     )
     st.plotly_chart(fig, use_container_width=True)
 
-    # Senin asıl tablon
     def style_table(styler):
         styler.set_properties(**{'background-color': 'black', 'color': '#00f2ff', 'font-weight': 'bold'})
         styler.map(lambda v: f"color: {'#FF4B4B' if 'ZİRVE' in v else '#00FF00' if 'DİP' in v else '#FFD700'}; background-color: black; font-weight: bold;", subset=['SDR VIP ANALYSIS'])
@@ -125,4 +121,4 @@ with inf2:
         </p>
     </div>""", unsafe_allow_html=True)
 
-st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px
+st.markdown("<p style='text-align:center; color:#00f2ff; opacity:0.4; margin-top:30px; font-family:monospace;'>SADRETTİN TURAN EXCLUSIVE GLOBAL TERMINAL • DATA: BINANCE • EST. 2026</p>", unsafe_allow_html=True)
