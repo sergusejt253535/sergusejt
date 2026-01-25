@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 from datetime import datetime, timedelta
+import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
@@ -34,6 +35,7 @@ st.markdown("""
         color: #FFD700 !important;
         font-weight: bold !important;
     }
+    .info-box { background-color: #000000; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; height: 100%; margin-bottom: 15px; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -68,7 +70,6 @@ def get_guaranteed_data():
                 v_1h = c_data['VOLUMEHOUR'] / 1_000_000
                 total_vol += v_1h
                 
-                # Matematiksel işlem parantezleri kontrol edildi
                 guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
                 
                 if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al & Nakde Geç / PEAK: Take Profit"
@@ -106,12 +107,10 @@ st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsaf
 
 if not df.empty:
     m1, m2, m3 = st.columns([1, 1, 2])
-    # Metrik parantezleri kontrol edildi
     m1.metric("💰 BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
     m2.metric("🛡️ SELL ZONE", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
     m3.metric("📊 TOTAL VOL (1H)", f"${t_vol:,.2f} M")
 
-    # Stil fonksiyonu ve tablo basımı
     def apply_style(df):
         return df.style.set_properties(**{
             'background-color': '#000000',
@@ -127,7 +126,35 @@ if not df.empty:
             "GÜÇ/POWER (%)": "% {}"
         })
 
-    st.dataframe(apply_style(df), use_container_width=True, hide_index=True, height=750)
+    st.dataframe(apply_style(df), use_container_width=True, hide_index=True, height=600)
+
+    st.write("---")
+    
+    # --- YENİ EKLENEN GRAFİK ---
+    st.write("### 📊 GLOBAL GÜÇ ANALİZİ (%) / POWER INDEX")
+    fig = px.bar(df, x='VARLIK/ASSET', y='GÜÇ/POWER (%)', color='GÜÇ/POWER (%)', color_continuous_scale='Blues')
+    fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
+    st.plotly_chart(fig, use_container_width=True)
+
+    # --- YENİ EKLENEN BİLGİ KUTULARI ---
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("""
+        <div class="info-box" style="border-left: 10px solid #ff4b4b;">
+            <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
+            <p style='color:#ffffff;'><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</b></p>
+            <p style='color:#cccccc;'>Bu paneldeki veriler algoritmik hesaplamalardır. Karar yetkisi kullanıcıya aittir.</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with c2:
+        st.markdown("""
+        <div class="info-box" style="border-left: 10px solid #FFD700;">
+            <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
+            <p style='color:#ffffff;'>🚀 <b>%88-100 POWER:</b> Kâr al, nakde geç.</p>
+            <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Kademeli alım bölgesi.</p>
+            <p style='color:#00d4ff;'>⚡ Risk yönetimi için %50 nakit korunmalıdır.</p>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.write("---")
     st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR PRESTIGE • SADRETTİN TURAN</p>", unsafe_allow_html=True)
