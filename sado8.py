@@ -3,58 +3,83 @@ import pandas as pd
 import requests
 from datetime import datetime, timedelta
 import plotly.express as px
-import random
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR (İLK SIRADA OLMAK ZORUNDA) ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
+# --- 1. AYARLAR (İLK SIRADA OLMALI) ---
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL VIP", layout="wide")
 
-# --- 2. GÜNCELLEME MOTORU ---
+# --- 2. GÜNCELLEME MOTORU (30 SANİYEDE BİR TAZELEME) ---
 st_autorefresh(interval=30 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
+# --- 3. ÖZEL CSS TASARIMI (VIP DOKUNUŞ) ---
 st.markdown("""
     <style>
+    /* Ana Arka Plan */
     .stApp { background-color: #000000 !important; }
-    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 15px; background-color: #000000; border-bottom: 3px solid #FFD700; margin-bottom: 15px; }
-    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 55px; margin-bottom: 0px; text-shadow: 0px 0px 30px #00d4ff; }
-    .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 20px; letter-spacing: 5px; margin-bottom: 20px; }
     
+    /* Başlık ve Alt Başlık */
+    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 50px; text-shadow: 0px 0px 25px #00d4ff; margin-bottom: 5px; }
+    .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 18px; letter-spacing: 4px; margin-bottom: 30px; border-bottom: 2px solid #FFD700; padding-bottom: 10px; }
+    
+    /* Kart (Metric) Tasarımları */
     [data-testid="stMetric"] {
-        background-color: #000000 !important;
-        border: 2px solid #FFD700 !important;
-        border-radius: 15px;
-        padding: 20px !important;
+        background-color: #0a0a0a !important;
+        border: 1px solid #FFD700 !important;
+        border-radius: 12px;
+        padding: 15px !important;
+        box-shadow: 0px 4px 15px rgba(255, 215, 0, 0.1);
     }
-    [data-testid="stMetricLabel"] { color: #ffffff !important; font-size: 18px !important; font-weight: bold !important; }
-    [data-testid="stMetricValue"] { color: #FFD700 !important; font-size: 38px !important; }
+    [data-testid="stMetricLabel"] { color: #ffffff !important; font-size: 16px !important; }
+    [data-testid="stMetricValue"] { color: #FFD700 !important; font-size: 32px !important; }
 
-    div[data-testid="stDataFrame"] div[role="columnheader"] {
+    /* Tablo Tasarımı */
+    div[data-testid="stDataFrame"] {
+        border: 2px solid #FFD700 !important;
+        border-radius: 10px;
         background-color: #000000 !important;
-        color: #FFD700 !important;
     }
-    div[data-testid="stDataFrame"] { 
-        background-color: #000000 !important; 
-        border: 4px solid #FFD700 !important; 
-        border-radius: 15px;
+    
+    /* Yan Menü (Sidebar) */
+    .css-1d391kg { background-color: #050505 !important; }
+    
+    /* Bilgi Kutuları */
+    .info-box {
+        background-color: #0a0a0a;
+        border-left: 5px solid #FFD700;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 10px;
     }
-    .stDataFrame td, .stDataFrame th { font-size: 28px !important; font-weight: bold !important; }
-    .info-box { background-color: #000000; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; height: 100%; margin-bottom: 15px; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER ---
-su_an_utc = datetime.utcnow()
-su_an_tr = su_an_utc + timedelta(hours=3)
+# --- 4. YAN MENÜ (VIP PANEL & STRATEJİ) ---
+with st.sidebar:
+    st.markdown("<h2 style='color:#FFD700; text-align:center;'>👑 SDR VIP</h2>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # Pazarlama Adımı: 3 Günlük Ücretsiz Deneme Uyarısı
+    st.info("🎁 DURUM: 3 Günlük Ücretsiz Deneme Süreniz Aktif!")
+    
+    st.markdown("### 🛡️ SDR STRATEJİ REHBERİ")
+    st.markdown("""
+    <div class='info-box'>
+        <b style='color:#00ffcc;'>%0 - %15:</b> <span style='color:white;'>DİP (Mal Topla)</span><br>
+        <b style='color:#FFD700;'>%15 - %40:</b> <span style='color:white;'>PUSU (Beklemede Kal)</span><br>
+        <b style='color:#00d4ff;'>%40 - %88:</b> <span style='color:white;'>TREND (İzlemeye Devam)</span><br>
+        <b style='color:#ff4b4b;'>%88 - %100:</b> <span style='color:white;'>ZİRVE (Kâr Al/Sat)</span>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("---")
+    st.markdown("#### 💬 VIP ERİŞİM & SATIN ALMA")
+    st.write("Süreniz dolduğunda veya özel analizler için bizimle iletişime geçin.")
+    # Not: Buradaki linke kendi WP grubunun veya numaranın linkini koyabiliriz Sado'm.
+    st.link_button("📱 WHATSAPP VIP HATTI", "https://wa.me/numaraniz")
 
-if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(225, 275)
-else:
-    st.session_state.fake_counter += random.randint(-1, 2)
-    if st.session_state.fake_counter > 300: st.session_state.fake_counter = 295
-
+# --- 5. VERİ ÇEKME FONKSİYONU ---
 def get_live_data():
-    assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'TRXUSDT', 'UNIUSDT', 'BCHUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
+    assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'SUIUSDT', 'FETUSDT', 'PEPEUSDT']
     try:
         r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
         data = r.json()
@@ -70,76 +95,7 @@ def get_live_data():
                 total_vol += v_1h
                 guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 0
                 
-                if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al & Nakde Geç / PEAK: Take Profit"
-                elif guc < 15: d, e = "💰 BUY", "🔥 DİP: Kademeli Topla / BOTTOM: Buy Time"
-                elif 15 <= guc < 40: d, e = "🥷 WAIT", "⌛ PUSU: Güç Toplanıyor / AMBUSH: Recovering"
-                else: d, e = "📈 FOLLOW", "💎 TRENDİ İZLE / WATCHING THE TREND"
-                
-                rows.append({
-                    "SDR SİNYAL": d, "VARLIK/ASSET": item['symbol'].replace("USDT", ""),
-                    "FİYAT/PRICE": f"{p:,.2f} $", "HACİM/VOL (1H)": f"${v_1h:,.2f} M",
-                    "GÜÇ/POWER (%)": f"%{guc}", "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
-                })
-            except: continue
-        return pd.DataFrame(rows), total_vol
-    except: return pd.DataFrame(), 0
-
-# --- 5. EKRAN TASARIMI ---
-st.markdown(f"""
-    <div class="top-bar">
-        <div style='color:#00ffcc; font-weight:bold;'>● OFFICIAL BINANCE API | UPDATE: 30S</div>
-        <div style='text-align:center;'>
-            <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <span style='color:#00d4ff;'>🌍 UTC: {su_an_utc.strftime("%H:%M:%S")}</span>
-            &nbsp;&nbsp;&nbsp;&nbsp;
-            <span style='color:#00ffcc;'>🇹🇷 TR: {su_an_tr.strftime("%H:%M:%S")}</span>
-        </div>
-        <div style='color:#FFD700; font-weight:bold;'>SDR PRESTIGE</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
-
-df, t_vol = get_live_data()
-
-if not df.empty:
-    m1, m2, m3 = st.columns([1,1,2])
-    m1.metric("💰 ALIM BÖLGESİ / BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
-    m2.metric("🛡️ SATIŞ BÖLGESİ / SELL ZONE", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
-    m3.metric("📊 TOPLAM HACİM (1H) / TOTAL VOLUME", f"${t_vol:,.2f} M")
-    
-    st.write("---")
-    
-    st.dataframe(df[["SDR SİNYAL", "VARLIK/ASSET", "FİYAT/PRICE", "HACİM/VOL (1H)", "GÜÇ/POWER (%)", "SDR ANALİZ / ANALYSIS"]].style.set_properties(**{
-        'background-color': '#000000', 'color': '#FFD700', 'border-color': '#FFD700', 'font-weight': 'bold'
-    }), use_container_width=True, hide_index=True, height=750)
-    
-    st.write("---")
-    
-    st.write("### 📊 GÜÇ ANALİZİ (%) / GLOBAL POWER PERCENTAGE")
-    fig = px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues')
-    fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', font=dict(color="white"))
-    st.plotly_chart(fig, use_container_width=True)
-    
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        <div class="info-box" style="border-left: 10px solid #ff4b4b;">
-            <h3 style='color:#ff4b4b; margin-top:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-            <p style='color:#ffffff;'><b>YATIRIM DANIŞMANLIĞI DEĞİLDİR. / NOT AN INVESTMENT ADVICE.</b></p>
-            <p style='color:#cccccc;'>Data source: Official Binance Public API. / Veri kaynağı: Resmi Binance API.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with c2:
-        st.markdown("""
-        <div class="info-box" style="border-left: 10px solid #FFD700;">
-            <h3 style='color:#FFD700; margin-top:0;'>🛡️ SDR STRATEJİ / STRATEGY</h3>
-            <p style='color:#ffffff;'>🚀 <b>%88-100 POWER:</b> Take profit. / Kar al.</p>
-            <p style='color:#ffffff;'>📉 <b>%0-15 POWER:</b> Accumulation zone. / Toplama bölgesi.</p>
-            <p style='color:#00d4ff;'>⚡ 50% cash protection is advised. / %50 nakit koruması tavsiye edilir.</p>
-        </div>
-        """, unsafe_allow_html=True)
-
-st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 sdr sadrettin turan • binance public api data</p>", unsafe_allow_html=True)
+                if guc > 88: s, a = "🛡️ SELL", "🚨 KÂR ALMA ZAMANI"
+                elif guc < 15: s, a = "💰 BUY", "🔥 KADEMELİ TOPLA"
+                elif 15 <= guc < 40: s, a = "⌛ WAIT", "💤 GÜÇ TOPLANIYOR"
+                else:
