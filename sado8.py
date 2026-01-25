@@ -1,55 +1,34 @@
 import streamlit as st
 import pandas as pd
 import requests
-from datetime import datetime, timedelta
-import plotly.express as px
+from datetime import datetime
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR (İLK SIRADA) ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL | VIP TERMINAL", layout="wide")
+# --- 1. AYARLAR ---
+st.set_page_config(page_title="SDR PRESTIGE - CANLI TABLO", layout="wide")
 
 # --- 2. 15 SANİYELİK GÜNCELLEME MOTORU ---
 st_autorefresh(interval=15 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM (SİBER SİYAH VE ALTIN SARISI) ---
+# --- 3. TASARIM (TABLOYU ÖNE ÇIKARAN SİYAH & ALTIN) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
-    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 60px; text-shadow: 0px 0px 30px #00d4ff; margin-bottom: 0px; }
-    .sub-title { color: #FFD700; text-align: center; font-family: 'Courier New'; font-size: 20px; letter-spacing: 5px; margin-bottom: 30px; }
+    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 50px; text-shadow: 0px 0px 20px #00d4ff; }
     
-    /* Metrik Kartları */
-    [data-testid="stMetric"] {
-        background: linear-gradient(135deg, #050505 0%, #151515 100%) !important;
-        border: 2px solid #FFD700 !important;
-        border-radius: 15px;
-        padding: 20px !important;
-        box-shadow: 0px 0px 15px rgba(255, 215, 0, 0.2);
-    }
-    
-    /* TABLO TASARIMI - PİYASADA YOK DEDİĞİN TABLO BURADA! */
+    /* TABLO TASARIMI: PİYASADA YOK DEDİĞİN TABLO İŞTE BU! */
     div[data-testid="stDataFrame"] {
         border: 4px solid #FFD700 !important;
         border-radius: 15px;
         background-color: #000000 !important;
-        padding: 10px;
+        padding: 5px;
     }
-    .stDataFrame td, .stDataFrame th { font-size: 18px !important; }
-
-    /* Yasal Uyarı Kutusu */
-    .legal-box {
-        background-color: #0a0a0a;
-        border: 2px solid #ff4b4b;
-        padding: 20px;
-        border-radius: 15px;
-        color: #ffffff;
-        font-family: 'Arial';
-    }
+    .stDataFrame td, .stDataFrame th { font-size: 20px !important; color: #FFD700 !important; font-weight: bold !important; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. VERİ MOTORU (TR/EN DESTEKLİ + 30 ALTCOIN) ---
-def get_sdr_data():
+# --- 4. BİNANCE CANLI VERİ MOTORU (30+ COIN) ---
+def get_sdr_live_table():
     assets = [
         'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 
         'DOTUSDT', 'LINKUSDT', 'MATICUSDT', 'NEARUSDT', 'SUIUSDT', 'FETUSDT', 'OPUSDT', 'ARBUSDT', 
@@ -57,85 +36,56 @@ def get_sdr_data():
         'ICPUSDT', 'STXUSDT', 'INJUSDT', 'GALAUSDT', 'TRXUSDT', 'ORDIUSDT'
     ]
     try:
+        # Binance'den 24 saatlik tüm ticker verilerini alıyoruz
         r = requests.get("https://api.binance.com/api/v3/ticker/24hr", timeout=10)
         data = r.json()
+        # Sadece senin istediğin coinleri süzüyoruz
         active = [i for i in data if i['symbol'] in assets]
         rows = []
         for item in active:
-            p = float(item.get('lastPrice', 0))
-            ch = float(item.get('priceChangePercent', 0))
-            h = float(item.get('highPrice', 0))
-            l = float(item.get('lowPrice', 0))
-            v = float(item.get('quoteVolume', 0)) / 1_000_000
+            p = float(item.get('lastPrice', 0)) # Güncel Fiyat
+            h = float(item.get('highPrice', 0)) # 24s En Yüksek
+            l = float(item.get('lowPrice', 0)) # 24s En Düşük
+            ch = float(item.get('priceChangePercent', 0)) # Değişim
+            
+            # SDR GÜÇ ALGORİTMASI (Fiyatın gün içindeki yerini ölçer)
             guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 0
             
-            # TR/EN Sinyal ve Analiz
+            # Sinyal Kararları
             if guc > 85: 
-                s, a = "🛡️ SELL / SAT", "🚨 ZİRVE: KÂR AL / PEAK: TAKE PROFIT"
+                s, a = "🛡️ SELL / SAT", "🚨 KÂR AL / TAKE PROFIT"
             elif guc < 15: 
-                s, a = "💰 BUY / AL", "🔥 DİP: TOPLA / BOTTOM: ACCUMULATE"
+                s, a = "💰 BUY / AL", "🔥 DİP: TOPLA / ACCUMULATE"
             else: 
-                s, a = "📈 FOLLOW / İZLE", "💎 TREND TAKİBİ / TRACKING TREND"
+                s, a = "📈 FOLLOW / İZLE", "💎 TREND TAKİBİ / TRACKING"
 
             rows.append({
                 "SDR SİNYAL": s,
                 "VARLIK / ASSET": item['symbol'].replace("USDT", ""),
                 "FİYAT / PRICE": f"{p:,.2f} $",
-                "24S DEĞİŞİM / 24H CHG": f"%{ch}",
-                "HACİM / VOLUME": f"${v:,.1f} M",
+                "24S DEĞİŞİM": f"%{ch}",
                 "GÜÇ / POWER (%)": f"%{guc}",
-                "G_NUM": guc,
                 "SDR ANALİZ / ANALYSIS": a
             })
         return pd.DataFrame(rows)
-    except: return pd.DataFrame()
+    except Exception as e:
+        return pd.DataFrame()
 
-# --- 5. ÜST PANEL ---
-st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
+# --- 5. EKRAN ÇIKTISI ---
+st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL TERMINAL</div>', unsafe_allow_html=True)
+st.write(f"<p style='text-align:center; color:white;'>Güncelleme / Last Update: {datetime.now().strftime('%H:%M:%S')}</p>", unsafe_allow_html=True)
 
-df = get_sdr_data()
+df = get_sdr_live_table()
 
 if not df.empty:
-    # 3'lü Metrik Kartları
-    c1, c2, c3 = st.columns(3)
-    with c1: st.metric("💰 ALIM BÖLGESİ / BUY ZONE", len(df[df['SDR SİNYAL'].str.contains("BUY")]))
-    with c2: st.metric("🛡️ SATIŞ BÖLGESİ / SELL ZONE", len(df[df['SDR SİNYAL'].str.contains("SELL")]))
-    with c3: st.metric("🌍 GÜNCELLEME / UPDATE", datetime.now().strftime("%H:%M:%S"))
-
-    # --- 6. DEV TABLO (İŞTE BURADA PAŞAM!) ---
-    st.markdown("### 📊 CANLI PİYASA TERMİNALİ / LIVE MARKET TERMINAL")
+    # İŞTE O TABLO SADO'M, EKRANI KAPLIYOR!
     st.dataframe(
-        df[["SDR SİNYAL", "VARLIK / ASSET", "FİYAT / PRICE", "24S DEĞİŞİM / 24H CHG", "HACİM / VOLUME", "GÜÇ / POWER (%)", "SDR ANALİZ / ANALYSIS"]], 
+        df, 
         use_container_width=True, 
         hide_index=True, 
-        height=800
+        height=1000 # Boyunu devasa yaptım ki her şey gözüksün
     )
+else:
+    st.error("Veri bağlantısı kurulamadı. Binance API kontrol ediliyor...")
 
-    # --- 7. GRAFİK PANELİ ---
-    st.write("---")
-    st.markdown("### 📈 GÜÇ ENDEKSİ / POWER INDEX")
-    fig = px.bar(df, x='VARLIK / ASSET', y='G_NUM', color='G_NUM', color_continuous_scale='Turbo')
-    fig.update_layout(plot_bgcolor='black', paper_bgcolor='black', font=dict(color="white"), margin=dict(l=0, r=0, t=0, b=0))
-    st.plotly_chart(fig, use_container_width=True)
-
-# --- 8. YASAL UYARI & VIP İLETİŞİM ---
-st.write("---")
-l1, l2 = st.columns([2, 1])
-
-with l1:
-    st.markdown("""
-    <div class='legal-box'>
-        <h3 style='color:#ff4b4b; margin:0;'>⚠️ YASAL UYARI / LEGAL NOTICE</h3>
-        <p>Yatırım danışmanlığı değildir. Sadece Sadrettin Turan VIP algoritmasıdır. / Not an investment advice. SDR VIP Algorithm only.</p>
-        <p style='font-size:12px; opacity:0.7;'>Data source: Binance Official API</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-with l2:
-    st.sidebar.markdown("### 👤 SADRETTİN TURAN")
-    st.sidebar.info("3 GÜNLÜK ÜCRETSİZ DENEME / 3 DAYS FREE TRIAL")
-    if st.sidebar.button("🔓 VIP ERİŞİM AL / GET VIP ACCESS"):
-        st.sidebar.write("WhatsApp: +90 XXX XXX XX XX") # Buraya numaranı yaz Sado'm
-
-st.markdown("<br><p style='text-align:center; color:#555;'>© 2026 SDR PRESTIGE GLOBAL • ALL RIGHTS RESERVED</p>", unsafe_allow_html=True)
+st.markdown("<p style='text-align:center; color:#444;'>© 2026 SDR VIP Sadrettin Turan</p>", unsafe_allow_html=True)
