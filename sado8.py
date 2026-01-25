@@ -68,6 +68,7 @@ def get_guaranteed_data():
                 v_1h = c_data['VOLUMEHOUR'] / 1_000_000
                 total_vol += v_1h
                 
+                # Matematiksel işlem parantezleri kontrol edildi
                 guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 50
                 
                 if guc > 88: d, e = "🛡️ SELL", "🚨 ZİRVE: Kâr Al & Nakde Geç / PEAK: Take Profit"
@@ -104,6 +105,31 @@ st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_ht
 st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
 
 if not df.empty:
-    m1, m2, m3 = st.columns([1,1,2])
+    m1, m2, m3 = st.columns([1, 1, 2])
+    # Metrik parantezleri kontrol edildi
     m1.metric("💰 BUY ZONE", len(df[df['SDR SİNYAL'] == "💰 BUY"]))
-    m2.metric("🛡️ SELL ZONE",
+    m2.metric("🛡️ SELL ZONE", len(df[df['SDR SİNYAL'] == "🛡️ SELL"]))
+    m3.metric("📊 TOTAL VOL (1H)", f"${t_vol:,.2f} M")
+
+    # Stil fonksiyonu ve tablo basımı
+    def apply_style(df):
+        return df.style.set_properties(**{
+            'background-color': '#000000',
+            'color': '#00d4ff',
+            'border-color': '#FFD700',
+            'font-weight': 'bold'
+        }).set_properties(subset=["SDR ANALİZ / ANALYSIS"], **{
+            'color': '#FFD700'
+        }).format({
+            "FİYAT/PRICE": "{:,.2f} $",
+            "DEĞİŞİM/CHG": "% {:,.2f}",
+            "HACİM/VOL (1H)": "$ {:,.2f} M",
+            "GÜÇ/POWER (%)": "% {}"
+        })
+
+    st.dataframe(apply_style(df), use_container_width=True, hide_index=True, height=750)
+
+    st.write("---")
+    st.markdown("<p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR PRESTIGE • SADRETTİN TURAN</p>", unsafe_allow_html=True)
+else:
+    st.info("🔄 Veri akışı optimize ediliyor...")
