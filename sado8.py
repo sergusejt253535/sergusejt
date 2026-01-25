@@ -6,60 +6,78 @@ import plotly.express as px
 import random
 from streamlit_autorefresh import st_autorefresh
 
-# --- 1. AYARLAR ---
-st.set_page_config(page_title="SDR PRESTIGE GLOBAL", layout="wide")
+# --- 1. AYARLAR (FULL SCREEN MODU) ---
+st.set_page_config(page_title="SDR PRESTIGE GLOBAL | VIP", layout="wide", initial_sidebar_state="collapsed")
 
-# --- 2. GÜNCELLEME MOTORU (15 SANİYE) ---
+# --- 2. 15 SANİYELİK GÜNCELLEME MOTORU ---
 st_autorefresh(interval=15 * 1000, key="datarefresh")
 
-# --- 3. CSS TASARIM ---
+# --- 3. SDR ÖZEL SİBER TASARIM (EN GENİŞ HALİ) ---
 st.markdown("""
     <style>
     .stApp { background-color: #000000 !important; }
-    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 15px; background-color: #000000; border-bottom: 3px solid #FFD700; margin-bottom: 15px; }
-    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 55px; margin-bottom: 0px; text-shadow: 0px 0px 30px #00d4ff; }
-    .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 20px; letter-spacing: 5px; margin-bottom: 20px; }
+    .top-bar { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; padding: 10px 20px; background-color: #000000; border-bottom: 2px solid #FFD700; margin-bottom: 10px; }
+    .main-title { color: #00d4ff; text-align: center; font-family: 'Arial Black'; font-size: 60px; margin-bottom: 0px; text-shadow: 0px 0px 30px #00d4ff; }
+    .sub-title { color: #ffffff; text-align: center; font-family: 'Courier New'; font-size: 22px; letter-spacing: 7px; margin-bottom: 20px; text-transform: uppercase; }
     
-    [data-testid="stMetric"] { background-color: #000000 !important; border: 2px solid #FFD700 !important; border-radius: 15px; padding: 20px !important; }
+    /* METRİK KARTLARI */
+    [data-testid="stMetric"] {
+        background-color: #050505 !important;
+        border: 2px solid #FFD700 !important;
+        border-radius: 12px;
+        padding: 15px !important;
+        box-shadow: 0px 0px 10px rgba(255, 215, 0, 0.1);
+    }
+    [data-testid="stMetricLabel"] { color: #ffffff !important; font-size: 16px !important; }
+    [data-testid="stMetricValue"] { color: #FFD700 !important; font-size: 32px !important; }
+
+    /* DEV TABLO TASARIMI */
+    div[data-testid="stDataFrame"] { 
+        background-color: #000000 !important; 
+        border: 3px solid #FFD700 !important; 
+        border-radius: 15px;
+        padding: 10px;
+    }
+    .stDataFrame td, .stDataFrame th { font-size: 22px !important; font-weight: bold !important; color: #FFD700 !important; }
     
-    div[data-testid="stDataFrame"] { background-color: #000000 !important; border: 4px solid #FFD700 !important; border-radius: 15px; }
-    .stDataFrame td, .stDataFrame th { font-size: 20px !important; font-weight: bold !important; color: #FFD700 !important; }
-    
-    .info-box { background-color: #000000; border: 2px solid #FFD700; padding: 25px; border-radius: 15px; height: 100%; }
-    .ticker-wrap { background: #FFD700; color: black; padding: 5px; font-weight: bold; overflow: hidden; }
+    /* BİLGİ KUTULARI */
+    .info-box { background-color: #0a0a0a; border: 1px solid #FFD700; padding: 20px; border-radius: 12px; height: 100%; }
+    .ticker-wrap { background: #FFD700; color: black; padding: 5px; font-weight: bold; font-family: monospace; }
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. DEĞİŞKENLER VE SESSION STATE ---
+# --- 4. ZAMAN VE ZİYARETÇİ AYARLARI ---
 su_an_utc = datetime.utcnow()
 su_an_tr = su_an_utc + timedelta(hours=3)
 
 if 'fake_counter' not in st.session_state:
-    st.session_state.fake_counter = random.randint(225, 275)
+    st.session_state.fake_counter = random.randint(310, 390)
 else:
-    st.session_state.fake_counter += random.randint(-1, 2)
+    st.session_state.fake_counter += random.randint(-2, 3)
 
-# --- 5. GÜÇLENDİRİLMİŞ VERİ MOTORU ---
-def get_live_data():
-    assets = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 'SHIBUSDT']
+# --- 5. İNATÇI BİNANCE VERİ MOTORU ---
+def get_sdr_master_data():
+    # En geniş altcoin listesi
+    assets = [
+        'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'AVAXUSDT', 'XRPUSDT', 'BNBUSDT', 'ADAUSDT', 
+        'DOGEUSDT', 'DOTUSDT', 'LINKUSDT', 'SUIUSDT', 'FETUSDT', 'RENDERUSDT', 'PEPEUSDT', 
+        'SHIBUSDT', 'NEARUSDT', 'OPUSDT', 'ARBUSDT', 'TIAUSDT', 'LTCUSDT', 'BCHUSDT', 'APTUSDT'
+    ]
     
-    # Sırasıyla denenecek Binance sunucuları
-    endpoints = [
+    urls = [
         "https://api.binance.com/api/v3/ticker/24hr",
         "https://api1.binance.com/api/v3/ticker/24hr",
-        "https://api2.binance.com/api/v3/ticker/24hr",
-        "https://api3.binance.com/api/v3/ticker/24hr"
+        "https://api2.binance.com/api/v3/ticker/24hr"
     ]
     
     data = None
-    for url in endpoints:
+    for url in urls:
         try:
             r = requests.get(url, timeout=5, headers={'User-Agent': 'Mozilla/5.0'})
             if r.status_code == 200:
                 data = r.json()
                 break
-        except:
-            continue
+        except: continue
             
     if data:
         active = [i for i in data if i['symbol'] in assets]
@@ -71,54 +89,4 @@ def get_live_data():
                 ch = float(item['priceChangePercent'])
                 v_1h = (float(item['quoteVolume']) / 1_000_000) / 24
                 total_vol += v_1h
-                guc = int(((p - l) / (h - l)) * 100) if (h - l) != 0 else 0
-                
-                if guc > 88: d, e = "🛡️ SELL / SAT", "🚨 ZİRVE: Kâr Al / PEAK: Take Profit"
-                elif guc < 15: d, e = "💰 BUY / AL", "🔥 DİP: Topla / BOTTOM: Accumulate"
-                else: d, e = "📈 FOLLOW / İZLE", "💎 TRENDİ İZLE / WATCHING"
-
-                rows.append({
-                    "SDR SİNYAL": d, "VARLIK/ASSET": item['symbol'].replace("USDT", ""),
-                    "FİYAT/PRICE": f"{p:,.2f} $", "DEĞİŞİM/CHG": f"%{ch}",
-                    "HACİM/VOL (1H)": f"${v_1h:,.2f} M", "GÜÇ/POWER (%)": f"%{guc}",
-                    "POWER_NUM": guc, "SDR ANALİZ / ANALYSIS": e
-                })
-            except: continue
-        return pd.DataFrame(rows), total_vol
-    return pd.DataFrame(), 0
-
-# --- 6. EKRAN ÇIKTISI ---
-df, t_vol = get_live_data()
-
-# Üst Bar
-st.markdown(f"""<div class="top-bar">
-    <div style='color:#00ffcc; font-weight:bold;'>● LIVE BINANCE DATA | 15S</div>
-    <div style='text-align:center;'>
-        <span style='color:#ffffff;'>👥 VISITORS:</span> <span style='color:#ff00ff; font-weight:bold;'>{st.session_state.fake_counter}</span>
-        &nbsp;&nbsp;&nbsp;&nbsp; <span style='color:#00d4ff;'>🌍 UTC: {su_an_utc.strftime("%H:%M:%S")}</span>
-        &nbsp;&nbsp;&nbsp;&nbsp; <span style='color:#00ffcc;'>🇹🇷 TR: {su_an_tr.strftime("%H:%M:%S")}</span>
-    </div>
-    <div style='color:#FFD700; font-weight:bold;'>SDR PRESTIGE</div>
-</div>""", unsafe_allow_html=True)
-
-st.markdown('<div class="main-title">SDR PRESTIGE GLOBAL</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">SADRETTİN TURAN VIP ANALYTICS</div>', unsafe_allow_html=True)
-
-if not df.empty:
-    m1, m2, m3 = st.columns([1,1,2])
-    m1.metric("💰 BUY ZONE / ALIM", len(df[df['SDR SİNYAL'].str.contains("BUY")]))
-    m2.metric("🛡️ SELL ZONE / SATIŞ", len(df[df['SDR SİNYAL'].str.contains("SELL")]))
-    m3.metric("📊 TOTAL VOLUME (1H)", f"${t_vol:,.2f} M")
-
-    # DEV TABLO
-    st.write("### 📊 LIVE TERMINAL / CANLI TERMİNAL")
-    st.dataframe(df[["SDR SİNYAL", "VARLIK/ASSET", "FİYAT/PRICE", "DEĞİŞİM/CHG", "HACİM/VOL (1H)", "GÜÇ/POWER (%)", "SDR ANALİZ / ANALYSIS"]], 
-                 use_container_width=True, hide_index=True, height=750)
-    
-    st.write("### 📊 GLOBAL POWER INDEX (%)")
-    st.plotly_chart(px.bar(df, x='VARLIK/ASSET', y='POWER_NUM', color='POWER_NUM', color_continuous_scale='Blues').update_layout(plot_bgcolor='black', paper_bgcolor='black', font=dict(color="white")), use_container_width=True)
-else:
-    st.error("⚠️ Binance API Bağlantı Hatası! Sistem otomatik olarak tekrar deniyor...")
-    st.info("İpucu: Eğer sürekli hata alıyorsan, sunucunun IP adresi Binance tarafından kısıtlanmış olabilir. Kendi bilgisayarında VPN denemek veya sunucu lokasyonunu değiştirmek çözüm olabilir.")
-
-st.markdown("<br><p style='text-align:center; opacity: 0.5; color:white;'>© 2026 SDR PRESTIGE • SADRETTİN TURAN</p>", unsafe_allow_html=True)
+                guc = int(((
